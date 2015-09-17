@@ -40,11 +40,35 @@
       know about them.  */
    enum yytokentype {
      PROGRAM = 258,
-     KEYWORD = 259,
-     INT = 260,
-     FLOAT = 261,
-     STRING = 262,
-     IDENTIFIER = 263
+     BEGIN_TOKEN = 259,
+     END = 260,
+     FUNCTION = 261,
+     READ = 262,
+     WRITE = 263,
+     IF = 264,
+     ELSE = 265,
+     FI = 266,
+     FOR = 267,
+     ROF = 268,
+     CONTINUE = 269,
+     BREAK = 270,
+     RETURN = 271,
+     INT = 272,
+     VOID = 273,
+     STRING = 274,
+     FLOAT = 275,
+     ADDOP = 276,
+     MULOP = 277,
+     COMPOP = 278,
+     ASSMTOP = 279,
+     OPENPAROP = 280,
+     CLOSEPAROP = 281,
+     SCOLONOP = 282,
+     COMMAOP = 283,
+     INTLIT = 284,
+     FLTLIT = 285,
+     STRLIT = 286,
+     IDENTIFIER = 287
    };
 #endif
 
@@ -65,7 +89,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 69 "Micro.tab.h"
+#line 93 "Micro.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
