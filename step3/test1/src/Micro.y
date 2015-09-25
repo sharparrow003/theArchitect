@@ -51,7 +51,7 @@ extern "C" FILE *yyin;
 %%
 program:  PROGRAM id BEGIN_TOKEN pgm_body END    
 ;
-id:       IDENTIFIER   
+id:       IDENTIFIER 
 ;
 pgm_body: decl func_declarations    
 ;
@@ -83,7 +83,7 @@ param_decl_tail: COMMAOP param_decl param_decl_tail | empty
 
 func_declarations: func_decl func_declarations | empty   
 ;
-func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END   
+func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END 
 ;
 func_body: decl stmt_list   
 ;
@@ -166,10 +166,10 @@ int main(int argc, char *argv[]) {
       return -1;
     }
     yyin = myfile;
+    printf("Symbol Table GLOBAL\n");
     do {
       yyparse();
     } while (!feof(yyin));
-    cout << "Accepted" << endl;
   }
 }
 
