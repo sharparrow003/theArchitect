@@ -51,27 +51,29 @@ extern "C" FILE *yyin;
 %%
 program:  PROGRAM id BEGIN_TOKEN pgm_body END    
 ;
-id:       IDENTIFIER 
+id:       IDENTIFIER  {$<sval>$ = $1;}
 ;
 pgm_body: decl func_declarations    
 ;
 decl:     string_decl decl | var_decl decl | empty   
 ;
 
-string_decl: STRING id ASSMTOP str SCOLONOP  
+string_decl: STRING id ASSMTOP str SCOLONOP  {cout<<"name "<<$<sval>2<<" type STRING value "<<$<sval>4<<endl;}
 ;
-str: STRLIT  
+str: STRLIT  {$<sval>$ = $1; }
 ;
 
-var_decl: var_type id_list SCOLONOP  
+var_decl: var_type id_list SCOLONOP //{cout<<"Type-->"<<$<sval>1<<endl;}
 ;
-var_type: FLOAT | INT   
+var_type: FLOAT {cout<<$<sval>1<<endl;}
+
+| INT {cout<<$<sval>1<<endl;}
 ;
 any_type: var_type | VOID  
 ;
-id_list: id id_tail  
+id_list: id id_tail 
 ;
-id_tail: COMMAOP id id_tail | empty   
+id_tail: COMMAOP id id_tail | empty 
 ;
 
 param_decl_list: param_decl param_decl_tail | empty   
@@ -83,7 +85,7 @@ param_decl_tail: COMMAOP param_decl param_decl_tail | empty
 
 func_declarations: func_decl func_declarations | empty   
 ;
-func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END 
+func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END {cout <<"\nSymbol table "<<$<sval>3<<endl; }
 ;
 func_body: decl stmt_list   
 ;
@@ -166,7 +168,7 @@ int main(int argc, char *argv[]) {
       return -1;
     }
     yyin = myfile;
-    printf("Symbol Table GLOBAL\n");
+    printf("Symbol table GLOBAL\n");
     do {
       yyparse();
     } while (!feof(yyin));

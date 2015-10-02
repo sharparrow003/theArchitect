@@ -485,13 +485,13 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    52,    52,    54,    56,    58,    58,    58,    61,    63,
-      66,    68,    68,    70,    70,    72,    74,    74,    77,    77,
-      79,    81,    81,    84,    84,    86,    88,    91,    91,    93,
-      93,    93,    95,    95,    95,    95,    98,   100,   102,   104,
-     106,   109,   111,   111,   113,   115,   115,   117,   117,   119,
-     121,   121,   123,   123,   125,   125,   125,   125,   127,   129,
-     132,   134,   134,   136,   138,   141,   141,   143,   143,   146,
-     149
+      66,    68,    70,    72,    72,    74,    76,    76,    79,    79,
+      81,    83,    83,    86,    86,    88,    90,    93,    93,    95,
+      95,    95,    97,    97,    97,    97,   100,   102,   104,   106,
+     108,   111,   113,   113,   115,   117,   117,   119,   119,   121,
+     123,   123,   125,   125,   127,   127,   127,   127,   129,   131,
+     134,   136,   136,   138,   140,   143,   143,   145,   145,   148,
+     151
 };
 #endif
 
@@ -1493,13 +1493,48 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 54 "src/Micro.y"
-    {cout << (yyvsp[(1) - (1)].iden)<<endl; ;}
+    {(yyval.sval) = (yyvsp[(1) - (1)].iden);;}
+    break;
+
+  case 8:
+
+/* Line 1455 of yacc.c  */
+#line 61 "src/Micro.y"
+    {cout<<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;;}
+    break;
+
+  case 9:
+
+/* Line 1455 of yacc.c  */
+#line 63 "src/Micro.y"
+    {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
+    break;
+
+  case 11:
+
+/* Line 1455 of yacc.c  */
+#line 68 "src/Micro.y"
+    {cout<<(yyvsp[(1) - (1)].sval)<<endl;;}
+    break;
+
+  case 12:
+
+/* Line 1455 of yacc.c  */
+#line 70 "src/Micro.y"
+    {cout<<(yyvsp[(1) - (1)].sval)<<endl;;}
+    break;
+
+  case 25:
+
+/* Line 1455 of yacc.c  */
+#line 88 "src/Micro.y"
+    {cout <<"\nSymbol table "<<(yyvsp[(3) - (9)].sval)<<endl; ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1503 "Micro.tab.c"
+#line 1538 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1711,7 +1746,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 154 "src/Micro.y"
+#line 156 "src/Micro.y"
 
 
 int main(int argc, char *argv[]) {
@@ -1727,7 +1762,7 @@ int main(int argc, char *argv[]) {
       return -1;
     }
     yyin = myfile;
-    printf("Symbol Table GLOBAL\n");
+    printf("Symbol table GLOBAL\n");
     do {
       yyparse();
     } while (!feof(yyin));
