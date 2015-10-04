@@ -2,13 +2,16 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <string>
+#include <cstring>
 using namespace std;
 
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
 
- void yyerror(const char *s) { cerr << "Not Accepted" << endl; exit(0); }
+void yyerror(const char *s) { cerr << "Not Accepted" << endl; exit(0); }
+static int val=0;
 %}
 %union {
 	int ival;
@@ -63,17 +66,31 @@ string_decl: STRING id ASSMTOP str SCOLONOP  {cout<<"name "<<$<sval>2<<" type ST
 str: STRLIT  {$<sval>$ = $1; }
 ;
 
-var_decl: var_type id_list SCOLONOP //{cout<<"Type-->"<<$<sval>1<<endl;}
+var_decl: var_type id_list SCOLONOP {
+char * varList = strtok($<sval>2," ");
+//cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
+while(varList)
+{
+cout<<"name "<<varList<<" type "<<$<sval>1<<endl;
+varList = strtok(NULL, " ");
+}
+}
 ;
-var_type: FLOAT {cout<<$<sval>1<<endl;}
+var_type: FLOAT {
+$<sval>$ = "FLOAT";
+}
 
-| INT {cout<<$<sval>1<<endl;}
+| INT {
+$<sval>$ = "INT";
+}
 ;
-any_type: var_type | VOID  
+any_type: var_type {$<sval>$ = $<sval>1;}
+| VOID  {$<sval>$ = $<sval>1;}
 ;
-id_list: id id_tail 
+id_list: id id_tail {$<sval>$ = $<sval>1;}
 ;
-id_tail: COMMAOP id id_tail | empty 
+id_tail: COMMAOP id id_tail {sprintf($<sval>$, "%s %s", $<sval>1, $<sval>2);}
+| empty 
 ;
 
 param_decl_list: param_decl param_decl_tail | empty   
@@ -92,7 +109,15 @@ func_body: decl stmt_list
 
 stmt_list: stmt stmt_list | empty   
 ;
-stmt: base_stmt | if_stmt | for_stmt   
+stmt: base_stmt 
+| if_stmt
+{
+	cout <<"\nSymbol table BLOCK "<<val<<endl;
+}
+| for_stmt  
+{
+	cout <<"\nSymbol table BLOCK "<<val<<endl;
+}
 ;
 base_stmt: assign_stmt | read_stmt | write_stmt | return_stmt   
 ;
@@ -132,8 +157,20 @@ mulop: MULOP
 ;
 
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
+{
+val = val + 1;
+}
 ;
-else_part: ELSE decl stmt_list | empty  
+else_part: ELSE decl stmt_list 
+/*{
+val = val + 1;
+sprintf($<sval>$, "%s %s", "\nSymbol table BLOCK ", val);
+}*/
+{
+val = val+1;
+cout <<"\nSymbol table BLOCK "<<val<<endl;
+}
+| empty  
 ;
 cond: expr compop expr  
 ;
@@ -146,6 +183,9 @@ incr_stmt: assign_expr | empty
 ;
 
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
+{
+val = val + 1;
+}
 ;
 
 empty:    

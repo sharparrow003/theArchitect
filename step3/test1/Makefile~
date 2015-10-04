@@ -11,7 +11,7 @@ compiler:
 	@mv lex.yy.c generated/lex.yy.c
 	@mv Micro.tab.c generated/Micro.tab.c
 	@mv Micro.tab.h generated/Micro.tab.h
-	@mv Micro build/Micro
+	@cp Micro build/Micro
 
 clean:
 	@rm -rf build
