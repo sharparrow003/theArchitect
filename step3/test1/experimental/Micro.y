@@ -10,7 +10,7 @@ struct block
 {
 	string * value;
 	struct block * next;		
-};	
+};
 
 extern "C" int yylex();
 extern "C" int yyparse();
@@ -96,6 +96,8 @@ string_decl: STRING id ASSMTOP str SCOLONOP
 		curr->value = new string(temp.str());
 		curr->next = (block*)malloc(sizeof(block));
 		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
 	}
 }
 ;
@@ -106,11 +108,12 @@ var_decl: var_type id_list SCOLONOP {
 char * varList = strtok($<sval>2," ");
 //cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
 while(varList)
-{
+{	
 	if(scope == 0){	
 		cout<<"name "<<varList<<" type "<<$<sval>1<<endl;
 	}
 	else if (scope != 0 && init == 0){
+		
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
 		temp<<"name "<<varList<<" type "<<$<sval>1<<endl;
@@ -120,11 +123,14 @@ while(varList)
 		init = 1;
 	}
 	else if (scope != 0 && init == 1){
+
 		stringstream temp;
 		temp<<"name "<<varList<<" type "<<$<sval>1<<endl;
 		curr->value = new string(temp.str());
 		curr->next = (block*)malloc(sizeof(block));
 		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
 	}
 	varList = strtok(NULL, " ");
 }
@@ -159,14 +165,22 @@ func_declarations: func_decl func_declarations | empty
 func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END 
 {
 cout <<"\nSymbol table "<<$<sval>3<<endl;
-while(head->next){
+while(head->next != 0){
+	//cout << "thresh1";
 	cout << *head->value;
-	free(head->value);
+	//cout << "thresh2";
+	free(head->value); //THis is where it fails
+	//cout << "thresh3";
 	struct block * temp = head->next;
 	free(head);
+	//cout << "thresh4";
 	head = temp;
+	//cout << "thresh5";
+	//cout << head->next;
 }
 free(head);
+head = 0;
+curr = 0;
 init = 0;
 }
 ;
@@ -177,28 +191,7 @@ stmt_list: stmt stmt_list | empty
 ;
 stmt: base_stmt 
 | if_stmt
-{	
-}
 | for_stmt  
-{	
-	if (init == 0){
-		head = (block*)malloc(sizeof(block));
-		stringstream temp;
-		temp <<"\nSymbol table BLOCK "<<val;
-		head->value = new string(temp.str());
-		curr = (block*)malloc(sizeof(block));
-		head->next = curr;	
-		init = 1;							
-	}
-	else{
-		stringstream temp;
-		temp <<"\nSymbol table BLOCK "<<val;
-		curr->value = new string(temp.str());
-		curr->next = (block*)malloc(sizeof(block));
-		curr = curr->next;
-		
-	}
-}
 ;
 base_stmt: assign_stmt | read_stmt | write_stmt | return_stmt   
 ;
@@ -243,7 +236,7 @@ if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI
 	if (init == 0){
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
-		temp <<"\nSymbol table BLOCK "<<val;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
 		head->value = new string(temp.str());
 		curr = (block*)malloc(sizeof(block));
 		head->next = curr;	
@@ -251,10 +244,12 @@ if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI
 	}
 	else{
 		stringstream temp;
-		temp <<"\nSymbol table BLOCK "<<val;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
 		curr->value = new string(temp.str());
 		curr->next = (block*)malloc(sizeof(block));
 		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
 	}		
 }
 ;
@@ -264,12 +259,25 @@ val = val + 1;
 sprintf($<sval>$, "%s %s", "\nSymbol table BLOCK ", val);
 }*/
 {
-val = val+1;
-stringstream temp;
-temp <<"\nSymbol table BLOCK "<<val;
-curr->value = new string(temp.str());
-curr->next = (block*)malloc(sizeof(block));
-curr = curr->next;
+	val = val + 1;	
+	if (init == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;	
+		init = 1;		
+	}
+	else{
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+	}	
 }
 | empty  
 ;
@@ -285,7 +293,26 @@ incr_stmt: assign_expr | empty
 
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
-val = val + 1;
+	val = val + 1;	
+	if (init == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;	
+		init = 1;							
+	}
+	else{		
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+		
+	}
 }
 ;
 
