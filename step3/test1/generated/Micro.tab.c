@@ -75,6 +75,8 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 
 extern "C" int yylex();
@@ -86,7 +88,7 @@ static int val=0;
 
 
 /* Line 189 of yacc.c  */
-#line 90 "Micro.tab.c"
+#line 92 "Micro.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -153,7 +155,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 16 "src/Micro.y"
+#line 18 "src/Micro.y"
 
 	int ival;
 	float fval;
@@ -163,7 +165,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 167 "Micro.tab.c"
+#line 169 "Micro.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -175,7 +177,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 179 "Micro.tab.c"
+#line 181 "Micro.tab.c"
 
 #ifdef short
 # undef short
@@ -487,14 +489,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    55,    55,    57,    59,    61,    61,    61,    64,    66,
-      69,    79,    83,    87,    88,    90,    92,    93,    96,    96,
-      98,   100,   100,   103,   103,   105,   107,   110,   110,   112,
-     113,   117,   122,   122,   122,   122,   125,   127,   129,   131,
-     133,   136,   138,   138,   140,   142,   142,   144,   144,   146,
-     148,   148,   150,   150,   152,   152,   152,   152,   154,   156,
-     159,   164,   173,   175,   177,   180,   180,   182,   182,   185,
-     191
+       0,    57,    57,    59,    61,    63,    63,    63,    66,    68,
+      71,    81,    85,    89,    90,    92,    94,    95,    98,    98,
+     100,   102,   102,   105,   105,   107,   109,   112,   112,   114,
+     115,   123,   132,   132,   132,   132,   135,   137,   139,   141,
+     143,   146,   148,   148,   150,   152,   152,   154,   154,   156,
+     158,   158,   160,   160,   162,   162,   162,   162,   164,   166,
+     169,   174,   182,   184,   186,   189,   189,   191,   191,   194,
+     200
 };
 #endif
 
@@ -1495,28 +1497,28 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 57 "src/Micro.y"
+#line 59 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].iden);;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 64 "src/Micro.y"
+#line 66 "src/Micro.y"
     {cout<<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 66 "src/Micro.y"
+#line 68 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 69 "src/Micro.y"
+#line 71 "src/Micro.y"
     {
 char * varList = strtok((yyvsp[(2) - (3)].sval)," ");
 //cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
@@ -1531,7 +1533,7 @@ varList = strtok(NULL, " ");
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 79 "src/Micro.y"
+#line 81 "src/Micro.y"
     {
 (yyval.sval) = "FLOAT";
 ;}
@@ -1540,7 +1542,7 @@ varList = strtok(NULL, " ");
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 83 "src/Micro.y"
+#line 85 "src/Micro.y"
     {
 (yyval.sval) = "INT";
 ;}
@@ -1549,60 +1551,68 @@ varList = strtok(NULL, " ");
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 87 "src/Micro.y"
+#line 89 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 88 "src/Micro.y"
+#line 90 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 90 "src/Micro.y"
+#line 92 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (2)].sval);;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 92 "src/Micro.y"
+#line 94 "src/Micro.y"
     {sprintf((yyval.sval), "%s %s", (yyvsp[(1) - (3)].sval), (yyvsp[(2) - (3)].sval));;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 105 "src/Micro.y"
+#line 107 "src/Micro.y"
     {cout <<"\nSymbol table "<<(yyvsp[(3) - (9)].sval)<<endl; ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 114 "src/Micro.y"
+#line 116 "src/Micro.y"
     {
-	cout <<"\nSymbol table BLOCK "<<val<<endl;
+	//cout <<"\nSymbol table BLOCK IF"<<val<<endl;
+	char *disp = "\nSymbol table BLOCK IF";
+	char *temp;
+	sprintf(temp,"%d",val);
+	sprintf((yyval.sval), "%s %s", disp, temp);
 ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 118 "src/Micro.y"
+#line 124 "src/Micro.y"
     {
-	cout <<"\nSymbol table BLOCK "<<val<<endl;
+	//cout <<"\nSymbol table BLOCK FOR"<<val<<endl;
+	char *disp = "\nSymbol table BLOCK FOR";
+	char *temp;
+	sprintf(temp,"%d",val);
+	sprintf((yyval.sval), "%s %s", disp, temp);
 ;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 160 "src/Micro.y"
+#line 170 "src/Micro.y"
     {
 val = val + 1;
 ;}
@@ -1611,17 +1621,16 @@ val = val + 1;
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 169 "src/Micro.y"
+#line 179 "src/Micro.y"
     {
 val = val+1;
-cout <<"\nSymbol table BLOCK "<<val<<endl;
 ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 186 "src/Micro.y"
+#line 195 "src/Micro.y"
     {
 val = val + 1;
 ;}
@@ -1630,7 +1639,7 @@ val = val + 1;
 
 
 /* Line 1455 of yacc.c  */
-#line 1634 "Micro.tab.c"
+#line 1643 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1842,7 +1851,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 196 "src/Micro.y"
+#line 205 "src/Micro.y"
 
 
 int main(int argc, char *argv[]) {

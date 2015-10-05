@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 
 extern "C" int yylex();
@@ -112,11 +114,19 @@ stmt_list: stmt stmt_list | empty
 stmt: base_stmt 
 | if_stmt
 {
-	cout <<"\nSymbol table BLOCK "<<val<<endl;
+	//cout <<"\nSymbol table BLOCK IF"<<val<<endl;
+	char *disp = "\nSymbol table BLOCK IF";
+	char *temp;
+	sprintf(temp,"%d",val);
+	sprintf($<sval>$, "%s %s", disp, temp);
 }
 | for_stmt  
 {
-	cout <<"\nSymbol table BLOCK "<<val<<endl;
+	//cout <<"\nSymbol table BLOCK FOR"<<val<<endl;
+	char *disp = "\nSymbol table BLOCK FOR";
+	char *temp;
+	sprintf(temp,"%d",val);
+	sprintf($<sval>$, "%s %s", disp, temp);
 }
 ;
 base_stmt: assign_stmt | read_stmt | write_stmt | return_stmt   
@@ -168,7 +178,6 @@ sprintf($<sval>$, "%s %s", "\nSymbol table BLOCK ", val);
 }*/
 {
 val = val+1;
-cout <<"\nSymbol table BLOCK "<<val<<endl;
 }
 | empty  
 ;
