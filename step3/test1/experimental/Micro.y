@@ -20,8 +20,8 @@ void yyerror(const char *s) { cerr << "Not Accepted" << endl; exit(0); }
 static int val=0; //Determines which block is being found
 static int init = 0; //Determines whether program has exited scope and thus assign head of linked list again
 static int scope = 0; //Determines whether program has finished processing Global variables
-static struct block * head;
-static struct block * curr;
+static struct block * head = 0;
+static struct block * curr = 0;
 %}
 
 
@@ -81,16 +81,15 @@ string_decl: STRING id ASSMTOP str SCOLONOP
 	if(scope == 0){	
 		cout<<"name "<<$<sval>2<<" type STRING value "<<$<sval>4<<endl;
 	}
-	else if (scope != 0 && init == 0){
+	else if (scope != 0 && head == 0){
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
 		temp <<"name "<<$<sval>2<<" type STRING value "<<$<sval>4<<endl;
 		head->value = new string(temp.str());
 		curr = (block*)malloc(sizeof(block));
 		head->next = curr;
-		init = 1;
 	}
-	else if (scope != 0 && init == 1){
+	else if (scope != 0 && head != 0){
 		stringstream temp;
 		temp <<"name "<<$<sval>2<<" type STRING value "<<$<sval>4<<endl;
 		curr->value = new string(temp.str());
@@ -112,7 +111,7 @@ while(varList)
 	if(scope == 0){	
 		cout<<"name "<<varList<<" type "<<$<sval>1<<endl;
 	}
-	else if (scope != 0 && init == 0){
+	else if (scope != 0 && head == 0){
 		
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
@@ -120,9 +119,8 @@ while(varList)
 		head->value = new string(temp.str());
 		curr = (block*)malloc(sizeof(block));
 		head->next = curr;
-		init = 1;
 	}
-	else if (scope != 0 && init == 1){
+	else if (scope != 0 && head != 0){
 
 		stringstream temp;
 		temp<<"name "<<varList<<" type "<<$<sval>1<<endl;
@@ -165,20 +163,16 @@ func_declarations: func_decl func_declarations | empty
 func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END 
 {
 cout <<"\nSymbol table "<<$<sval>3<<endl;
-while(head->next != 0){
-	//cout << "thresh1";
-	cout << *head->value;
-	//cout << "thresh2";
-	free(head->value); //THis is where it fails
-	//cout << "thresh3";
-	struct block * temp = head->next;
-	free(head);
-	//cout << "thresh4";
-	head = temp;
-	//cout << "thresh5";
-	//cout << head->next;
+if(head != 0){	
+	while(head->value!= 0){
+		cout << *head->value;
+		free(head->value); //THis is where it fails
+		struct block * temp = head->next;
+		free(head);
+		head = temp;
+		//cout << head->next;
+	}
 }
-free(head);
 head = 0;
 curr = 0;
 init = 0;
@@ -233,14 +227,13 @@ mulop: MULOP
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
 {
 	val = val + 1;
-	if (init == 0){
+	if (head == 0){
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
 		temp <<"\nSymbol table BLOCK "<<val<<endl;
 		head->value = new string(temp.str());
 		curr = (block*)malloc(sizeof(block));
-		head->next = curr;	
-		init = 1;		
+		head->next = curr;			
 	}
 	else{
 		stringstream temp;
@@ -260,14 +253,13 @@ sprintf($<sval>$, "%s %s", "\nSymbol table BLOCK ", val);
 }*/
 {
 	val = val + 1;	
-	if (init == 0){
+	if (head == 0){
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
 		temp <<"\nSymbol table BLOCK "<<val<<endl;
 		head->value = new string(temp.str());
 		curr = (block*)malloc(sizeof(block));
-		head->next = curr;	
-		init = 1;		
+		head->next = curr;			
 	}
 	else{
 		stringstream temp;
@@ -294,14 +286,13 @@ incr_stmt: assign_expr | empty
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
 	val = val + 1;	
-	if (init == 0){
+	if (head == 0){
 		head = (block*)malloc(sizeof(block));
 		stringstream temp;
 		temp <<"\nSymbol table BLOCK "<<val<<endl;
 		head->value = new string(temp.str());
 		curr = (block*)malloc(sizeof(block));
-		head->next = curr;	
-		init = 1;							
+		head->next = curr;								
 	}
 	else{		
 		stringstream temp;
