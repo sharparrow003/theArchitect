@@ -155,24 +155,7 @@ param_decl_list: param_decl param_decl_tail | empty
 ;
 param_decl: var_type id  
 {
-	if (head == 0){
-		head = (block*)malloc(sizeof(block));
-		stringstream temp;
-		temp <<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
-		head->value = new string(temp.str());
-		curr = (block*)malloc(sizeof(block));
-		head->next = curr;								
-	}
-	else{		
-		stringstream temp;
-		temp <<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
-		curr->value = new string(temp.str());
-		curr->next = (block*)malloc(sizeof(block));
-		curr = curr->next;
-		curr->next = 0;
-		curr->value = 0;
-		
-	}
+	cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
 }
 ;
 param_decl_tail: COMMAOP param_decl param_decl_tail | empty  

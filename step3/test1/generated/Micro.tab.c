@@ -68,27 +68,35 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 1 "src/Micro.y"
+#line 1 "experimental/Micro.y"
 
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 #include <cstring>
-#include <stdio.h>
-#include <stdlib.h>
+#include <sstream>
 using namespace std;
+struct block 
+{
+	string * value;
+	struct block * next;		
+};
 
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
 
 void yyerror(const char *s) { cerr << "Not Accepted" << endl; exit(0); }
-static int val=0;
+static int val=0; //Determines which block is being found
+static int init = 0; //Determines whether program has exited scope and thus assign head of linked list again
+static int scope = 0; //Determines whether program has finished processing Global variables
+static struct block * head = 0;
+static struct block * curr = 0;
 
 
 /* Line 189 of yacc.c  */
-#line 92 "Micro.tab.c"
+#line 100 "Micro.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -155,7 +163,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 18 "src/Micro.y"
+#line 28 "experimental/Micro.y"
 
 	int ival;
 	float fval;
@@ -165,7 +173,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 169 "Micro.tab.c"
+#line 177 "Micro.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -177,7 +185,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 181 "Micro.tab.c"
+#line 189 "Micro.tab.c"
 
 #ifdef short
 # undef short
@@ -487,16 +495,16 @@ static const yytype_int8 yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,    57,    57,    59,    61,    63,    63,    63,    66,    68,
-      71,    81,    85,    89,    90,    92,    94,    95,    98,    98,
-     100,   102,   102,   105,   105,   107,   109,   112,   112,   114,
-     115,   123,   132,   132,   132,   132,   135,   137,   139,   141,
-     143,   146,   148,   148,   150,   152,   152,   154,   154,   156,
-     158,   158,   160,   160,   162,   162,   162,   162,   164,   166,
-     169,   174,   182,   184,   186,   189,   189,   191,   191,   194,
-     200
+       0,    67,    67,    69,    71,    73,    73,    73,    79,   103,
+     106,   137,   141,   145,   146,   148,   150,   151,   154,   154,
+     156,   178,   178,   181,   181,   183,   201,   204,   204,   206,
+     207,   208,   210,   210,   210,   210,   213,   215,   217,   219,
+     221,   224,   226,   226,   228,   230,   230,   232,   232,   234,
+     236,   236,   238,   238,   240,   240,   240,   240,   242,   244,
+     247,   269,   294,   296,   298,   301,   301,   303,   303,   306,
+     330
 };
 #endif
 
@@ -1497,35 +1505,86 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 59 "src/Micro.y"
+#line 69 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].iden);;}
+    break;
+
+  case 7:
+
+/* Line 1455 of yacc.c  */
+#line 74 "experimental/Micro.y"
+    {
+	if(scope == 0){scope = 1;}
+;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 66 "src/Micro.y"
-    {cout<<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;;}
+#line 80 "experimental/Micro.y"
+    {
+	if(scope == 0){	
+		cout<<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;
+	}
+	else if (scope != 0 && head == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;
+	}
+	else if (scope != 0 && head != 0){
+		stringstream temp;
+		temp <<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+	}
+;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 68 "src/Micro.y"
+#line 103 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 71 "src/Micro.y"
+#line 106 "experimental/Micro.y"
     {
 char * varList = strtok((yyvsp[(2) - (3)].sval)," ");
 //cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
 while(varList)
-{
-cout<<"name "<<varList<<" type "<<(yyvsp[(1) - (3)].sval)<<endl;
-varList = strtok(NULL, " ");
+{	
+	if(scope == 0){	
+		cout<<"name "<<varList<<" type "<<(yyvsp[(1) - (3)].sval)<<endl;
+	}
+	else if (scope != 0 && head == 0){
+		
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp<<"name "<<varList<<" type "<<(yyvsp[(1) - (3)].sval)<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;
+	}
+	else if (scope != 0 && head != 0){
+
+		stringstream temp;
+		temp<<"name "<<varList<<" type "<<(yyvsp[(1) - (3)].sval)<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+	}
+	varList = strtok(NULL, " ");
 }
 ;}
     break;
@@ -1533,7 +1592,7 @@ varList = strtok(NULL, " ");
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 81 "src/Micro.y"
+#line 137 "experimental/Micro.y"
     {
 (yyval.sval) = "FLOAT";
 ;}
@@ -1542,7 +1601,7 @@ varList = strtok(NULL, " ");
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 85 "src/Micro.y"
+#line 141 "experimental/Micro.y"
     {
 (yyval.sval) = "INT";
 ;}
@@ -1551,95 +1610,162 @@ varList = strtok(NULL, " ");
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 89 "src/Micro.y"
+#line 145 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 90 "src/Micro.y"
+#line 146 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 92 "src/Micro.y"
+#line 148 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (2)].sval);;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 94 "src/Micro.y"
+#line 150 "experimental/Micro.y"
     {sprintf((yyval.sval), "%s %s", (yyvsp[(1) - (3)].sval), (yyvsp[(2) - (3)].sval));;}
+    break;
+
+  case 20:
+
+/* Line 1455 of yacc.c  */
+#line 157 "experimental/Micro.y"
+    {
+	if (head == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"name "<<(yyvsp[(2) - (2)].sval)<<" type "<<(yyvsp[(1) - (2)].sval)<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;								
+	}
+	else{		
+		stringstream temp;
+		temp <<"name "<<(yyvsp[(2) - (2)].sval)<<" type "<<(yyvsp[(1) - (2)].sval)<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+		
+	}
+;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 107 "src/Micro.y"
-    {cout <<"\nSymbol table "<<(yyvsp[(3) - (9)].sval)<<endl; ;}
-    break;
-
-  case 30:
-
-/* Line 1455 of yacc.c  */
-#line 116 "src/Micro.y"
+#line 184 "experimental/Micro.y"
     {
-	//cout <<"\nSymbol table BLOCK IF"<<val<<endl;
-	char *disp = "\nSymbol table BLOCK IF";
-	char *temp;
-	sprintf(temp,"%d",val);
-	sprintf((yyval.sval), "%s %s", disp, temp);
-;}
-    break;
-
-  case 31:
-
-/* Line 1455 of yacc.c  */
-#line 124 "src/Micro.y"
-    {
-	//cout <<"\nSymbol table BLOCK FOR"<<val<<endl;
-	char *disp = "\nSymbol table BLOCK FOR";
-	char *temp;
-	sprintf(temp,"%d",val);
-	sprintf((yyval.sval), "%s %s", disp, temp);
+cout <<"\nSymbol table "<<(yyvsp[(3) - (9)].sval)<<endl;
+if(head != 0){	
+	while(head->value!= 0){
+		cout << *head->value;
+		free(head->value); //THis is where it fails
+		struct block * temp = head->next;
+		free(head);
+		head = temp;
+		//cout << head->next;
+	}
+}
+head = 0;
+curr = 0;
+init = 0;
 ;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 170 "src/Micro.y"
+#line 248 "experimental/Micro.y"
     {
-val = val + 1;
+	val = val + 1;
+	if (head == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;			
+	}
+	else{
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+	}		
 ;}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 179 "src/Micro.y"
+#line 274 "experimental/Micro.y"
     {
-val = val+1;
+	val = val + 1;	
+	if (head == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;			
+	}
+	else{
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+	}	
 ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 195 "src/Micro.y"
+#line 307 "experimental/Micro.y"
     {
-val = val + 1;
+	val = val + 1;	
+	if (head == 0){
+		head = (block*)malloc(sizeof(block));
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		head->value = new string(temp.str());
+		curr = (block*)malloc(sizeof(block));
+		head->next = curr;								
+	}
+	else{		
+		stringstream temp;
+		temp <<"\nSymbol table BLOCK "<<val<<endl;
+		curr->value = new string(temp.str());
+		curr->next = (block*)malloc(sizeof(block));
+		curr = curr->next;
+		curr->next = 0;
+		curr->value = 0;
+		
+	}
 ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1643 "Micro.tab.c"
+#line 1769 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1851,7 +1977,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 205 "src/Micro.y"
+#line 335 "experimental/Micro.y"
 
 
 int main(int argc, char *argv[]) {

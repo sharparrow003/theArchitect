@@ -6,7 +6,7 @@ compiler:
 	@mkdir -p build
 	@mkdir -p generated
 	@flex src/Micro.l
-	@bison -d src/Micro.y
+	@bison -d experimental/Micro.y
 	@g++ -Wno-write-strings Micro.tab.c lex.yy.c -lfl -o Micro
 	@mv lex.yy.c generated/lex.yy.c
 	@mv Micro.tab.c generated/Micro.tab.c
