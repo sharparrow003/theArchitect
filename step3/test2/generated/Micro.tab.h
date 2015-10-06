@@ -79,7 +79,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 28 "experimental/Micro.y"
+#line 30 "experimental/Micro.y"
 
 	int ival;
 	float fval;

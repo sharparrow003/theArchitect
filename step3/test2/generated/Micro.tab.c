@@ -79,7 +79,7 @@
 using namespace std;
 struct block 
 {
-	string * value;
+	string *value;
 	struct block * next;		
 };
 
@@ -93,10 +93,12 @@ static int init = 0; //Determines whether program has exited scope and thus assi
 static int scope = 0; //Determines whether program has finished processing Global variables
 static struct block * head = 0;
 static struct block * curr = 0;
+static struct block * dispHead = 0;
+static struct block * dispCurr = 0;
 
 
 /* Line 189 of yacc.c  */
-#line 100 "Micro.tab.c"
+#line 102 "Micro.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -163,7 +165,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 28 "experimental/Micro.y"
+#line 30 "experimental/Micro.y"
 
 	int ival;
 	float fval;
@@ -173,7 +175,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 177 "Micro.tab.c"
+#line 179 "Micro.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -185,7 +187,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 189 "Micro.tab.c"
+#line 191 "Micro.tab.c"
 
 #ifdef short
 # undef short
@@ -497,14 +499,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    67,    67,    69,    71,    73,    73,    73,    79,   103,
-     106,   137,   141,   145,   146,   148,   150,   151,   154,   154,
-     156,   178,   178,   181,   181,   183,   201,   204,   204,   206,
-     207,   208,   210,   210,   210,   210,   213,   215,   217,   219,
-     221,   224,   226,   226,   228,   230,   230,   232,   232,   234,
-     236,   236,   238,   238,   240,   240,   240,   240,   242,   244,
-     247,   269,   294,   296,   298,   301,   301,   303,   303,   306,
-     330
+       0,    69,    69,   120,   122,   124,   124,   124,   130,   171,
+     174,   237,   241,   245,   246,   248,   250,   251,   254,   254,
+     256,   278,   278,   281,   281,   283,   337,   340,   340,   342,
+     343,   344,   346,   346,   346,   346,   349,   351,   353,   355,
+     357,   360,   362,   362,   364,   366,   366,   368,   368,   370,
+     372,   372,   374,   374,   376,   376,   376,   376,   378,   380,
+     383,   405,   430,   432,   434,   437,   437,   439,   439,   442,
+     466
 };
 #endif
 
@@ -1502,17 +1504,72 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 3:
+        case 2:
 
 /* Line 1455 of yacc.c  */
-#line 69 "experimental/Micro.y"
+#line 70 "experimental/Micro.y"
+    {
+	struct block *tempHead1 = dispHead;
+	struct block *tempHead2 = dispHead;
+	struct block *tempHead3 = dispHead;
+	int countDuplicate = 0;
+
+	while(tempHead2!=NULL)
+	{
+		tempHead3 = tempHead2;
+		countDuplicate = 0;
+		while(tempHead3!=NULL)
+		{
+			if(*tempHead3->value == *tempHead2->value)
+			{
+				countDuplicate = countDuplicate+1;
+
+				if(countDuplicate>1)
+				{
+					int strLen = tempHead3->value->length();
+					string x = tempHead3->value->substr(5,strLen);
+					int spacePos = x.find(" ");
+					string var = x.substr(0,spacePos);
+					cout<<"DECLARATION ERROR "<<var<<endl;
+					exit(0);
+				}
+			}
+			if(tempHead3->value->substr(0,4) == "\nSym")
+			{
+				countDuplicate = 0;
+			}
+			tempHead3 = tempHead3->next;
+		}
+		tempHead2=tempHead2->next;
+	}	
+	printf("Symbol table GLOBAL\n");
+	while(dispHead!=NULL)
+	{
+		
+		cout<<*dispHead->value;
+		if(dispHead->next != NULL)
+		{
+			dispHead = dispHead->next;
+		}
+		else
+		{
+			break;
+		}
+	}
+;}
+    break;
+
+  case 3:
+
+/* Line 1455 of yacc.c  */
+#line 120 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].iden);;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 74 "experimental/Micro.y"
+#line 125 "experimental/Micro.y"
     {
 	if(scope == 0){scope = 1;}
 ;}
@@ -1521,10 +1578,27 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 80 "experimental/Micro.y"
+#line 131 "experimental/Micro.y"
     {
 	if(scope == 0){	
-		cout<<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;
+		//cout<<"name "<<$<sval>2<<" type STRING value "<<$<sval>4<<endl;
+		if(dispHead==0)
+		{
+			dispCurr = (block*)malloc(sizeof(block));
+			dispCurr->value = 0;
+			dispCurr->next = 0;
+			dispHead = dispCurr;
+		}
+		else
+		{
+			dispCurr->next = (block*)malloc(sizeof(block));
+			dispCurr = dispCurr->next;
+			dispCurr->value = 0;
+			dispCurr->next = 0;
+		}
+		stringstream temp;
+		temp<<"name "<<(yyvsp[(2) - (5)].sval)<<" type STRING value "<<(yyvsp[(4) - (5)].sval)<<endl;
+		dispCurr->value = new string(temp.str());
 	}
 	else if (scope != 0 && head == 0){
 		head = (block*)malloc(sizeof(block));
@@ -1549,21 +1623,53 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 103 "experimental/Micro.y"
+#line 171 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 106 "experimental/Micro.y"
+#line 174 "experimental/Micro.y"
     {
 char * varList = strtok((yyvsp[(2) - (3)].sval)," ");
 //cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
+/*
+if(dispHead==0)
+{
+	dispCurr = (block*)malloc(sizeof(block));
+	dispHead = dispCurr;
+}
+else
+{
+	dispCurr->next = (block*)malloc(sizeof(block));
+	dispCurr = dispCurr->next;
+}
+stringstream temp;
+temp<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
+dispCurr->value = new string(temp.str());
+*/
 while(varList)
 {	
 	if(scope == 0){	
-		cout<<"name "<<varList<<" type "<<(yyvsp[(1) - (3)].sval)<<endl;
+		//cout<<"name "<<varList<<" type "<<$<sval>1<<endl;
+		if(dispHead==0)
+		{
+			dispCurr = (block*)malloc(sizeof(block));
+			dispCurr->value = 0;
+			dispCurr->next = 0;
+			dispHead = dispCurr;
+		}
+		else
+		{	
+			dispCurr->next = (block*)malloc(sizeof(block));
+			dispCurr = dispCurr->next;
+			dispCurr->value = 0;
+			dispCurr->next = 0;
+		}
+		stringstream temp;
+		temp<<"name "<<varList<<" type "<<(yyvsp[(1) - (3)].sval)<<endl;
+		dispCurr->value = new string(temp.str());
 	}
 	else if (scope != 0 && head == 0){
 		
@@ -1592,7 +1698,7 @@ while(varList)
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 137 "experimental/Micro.y"
+#line 237 "experimental/Micro.y"
     {
 (yyval.sval) = "FLOAT";
 ;}
@@ -1601,7 +1707,7 @@ while(varList)
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 141 "experimental/Micro.y"
+#line 241 "experimental/Micro.y"
     {
 (yyval.sval) = "INT";
 ;}
@@ -1610,35 +1716,35 @@ while(varList)
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 145 "experimental/Micro.y"
+#line 245 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 146 "experimental/Micro.y"
+#line 246 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 148 "experimental/Micro.y"
+#line 248 "experimental/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (2)].sval);;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 150 "experimental/Micro.y"
+#line 250 "experimental/Micro.y"
     {sprintf((yyval.sval), "%s %s", (yyvsp[(1) - (3)].sval), (yyvsp[(2) - (3)].sval));;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 157 "experimental/Micro.y"
+#line 257 "experimental/Micro.y"
     {
 	if (head == 0){
 		head = (block*)malloc(sizeof(block));
@@ -1664,16 +1770,52 @@ while(varList)
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 184 "experimental/Micro.y"
+#line 284 "experimental/Micro.y"
     {
-cout <<"\nSymbol table "<<(yyvsp[(3) - (9)].sval)<<endl;
+//cout <<"\nSymbol table "<<$<sval>3<<endl;
+if(dispHead==0)
+{
+	dispCurr = (block*)malloc(sizeof(block));
+	dispCurr->value = 0;
+	dispCurr->next = 0;
+	dispHead = dispCurr;
+}
+else
+{
+	dispCurr->next = (block*)malloc(sizeof(block));
+	dispCurr = dispCurr->next;
+	dispCurr->value = 0;
+	dispCurr->next = 0;
+}
+stringstream temp;
+temp<<"\nSymbol table "<<(yyvsp[(3) - (9)].sval)<<endl;
+dispCurr->value = new string(temp.str());
+
 if(head != 0){	
 	while(head->value!= 0){
-		cout << *head->value;
+		//cout << *head->value;
+		if(dispHead==0)
+		{
+			dispCurr = (block*)malloc(sizeof(block));
+			dispCurr->value = 0;
+			dispCurr->next = 0;
+			dispHead = dispCurr;
+		}
+		else
+		{
+			dispCurr->next = (block*)malloc(sizeof(block));
+			dispCurr = dispCurr->next;
+			dispCurr->value = 0;
+			dispCurr->next = 0;
+		}
+		stringstream temp;
+		temp<< *head->value;
+		dispCurr->value = new string(temp.str());		
+	
 		free(head->value); //THis is where it fails
-		struct block * temp = head->next;
+		struct block * temp1 = head->next;
 		free(head);
-		head = temp;
+		head = temp1;
 		//cout << head->next;
 	}
 }
@@ -1686,7 +1828,7 @@ init = 0;
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 248 "experimental/Micro.y"
+#line 384 "experimental/Micro.y"
     {
 	val = val + 1;
 	if (head == 0){
@@ -1712,7 +1854,7 @@ init = 0;
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 274 "experimental/Micro.y"
+#line 410 "experimental/Micro.y"
     {
 	val = val + 1;	
 	if (head == 0){
@@ -1738,7 +1880,7 @@ init = 0;
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 307 "experimental/Micro.y"
+#line 443 "experimental/Micro.y"
     {
 	val = val + 1;	
 	if (head == 0){
@@ -1765,7 +1907,7 @@ init = 0;
 
 
 /* Line 1455 of yacc.c  */
-#line 1769 "Micro.tab.c"
+#line 1911 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1977,7 +2119,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 335 "experimental/Micro.y"
+#line 471 "experimental/Micro.y"
 
 
 int main(int argc, char *argv[]) {
@@ -1993,7 +2135,6 @@ int main(int argc, char *argv[]) {
       return -1;
     }
     yyin = myfile;
-    printf("Symbol table GLOBAL\n");
     do {
       yyparse();
     } while (!feof(yyin));
