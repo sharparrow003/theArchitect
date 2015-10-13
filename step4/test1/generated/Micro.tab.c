@@ -83,6 +83,13 @@ struct block
 	struct block * next;		
 };
 
+struct ast
+{
+	string *value;
+	struct ast *left;
+	struct ast *right;
+};
+
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
@@ -92,7 +99,7 @@ void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 int checkDuplicate(struct block *head);
 void printList(struct block *head);
 void generateList();
-
+block *newBlock();
 
 
 static int val=0; //Determines which block is being found
@@ -105,7 +112,7 @@ static struct block * dispCurr = 0;
 
 
 /* Line 189 of yacc.c  */
-#line 109 "Micro.tab.c"
+#line 116 "Micro.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -172,7 +179,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 36 "src/Micro.y"
+#line 43 "src/Micro.y"
 
 	int ival;
 	float fval;
@@ -182,7 +189,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 186 "Micro.tab.c"
+#line 193 "Micro.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -194,7 +201,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 198 "Micro.tab.c"
+#line 205 "Micro.tab.c"
 
 #ifdef short
 # undef short
@@ -506,14 +513,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    75,    75,   126,   128,   130,   130,   130,   136,   177,
-     180,   243,   247,   251,   252,   254,   256,   257,   260,   260,
-     262,   284,   284,   287,   287,   289,   343,   346,   346,   348,
-     349,   350,   352,   352,   352,   352,   355,   357,   359,   361,
-     363,   366,   368,   368,   370,   372,   372,   374,   374,   376,
-     378,   378,   380,   380,   382,   382,   382,   382,   384,   386,
-     389,   411,   436,   438,   440,   443,   443,   445,   445,   448,
-     472
+       0,    82,    82,   133,   135,   137,   137,   137,   143,   184,
+     187,   250,   254,   258,   259,   261,   263,   264,   267,   267,
+     269,   291,   291,   294,   294,   296,   350,   353,   353,   355,
+     356,   357,   359,   359,   359,   359,   362,   364,   366,   368,
+     370,   373,   375,   375,   377,   379,   379,   381,   381,   383,
+     385,   385,   387,   387,   389,   389,   389,   389,   391,   393,
+     396,   418,   443,   445,   447,   450,   450,   452,   452,   455,
+     479
 };
 #endif
 
@@ -1514,7 +1521,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 76 "src/Micro.y"
+#line 83 "src/Micro.y"
     {
 	struct block *tempHead1 = dispHead;
 	struct block *tempHead2 = dispHead;
@@ -1569,14 +1576,14 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 126 "src/Micro.y"
+#line 133 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].iden);;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 131 "src/Micro.y"
+#line 138 "src/Micro.y"
     {
 	if(scope == 0){scope = 1;}
 ;}
@@ -1585,7 +1592,7 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 137 "src/Micro.y"
+#line 144 "src/Micro.y"
     {
 	if(scope == 0){	
 		//cout<<"name "<<$<sval>2<<" type STRING value "<<$<sval>4<<endl;
@@ -1630,14 +1637,14 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 177 "src/Micro.y"
+#line 184 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 180 "src/Micro.y"
+#line 187 "src/Micro.y"
     {
 char * varList = strtok((yyvsp[(2) - (3)].sval)," ");
 //cout<<"name "<<$<sval>2<<" type "<<$<sval>1<<endl;
@@ -1705,7 +1712,7 @@ while(varList)
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 243 "src/Micro.y"
+#line 250 "src/Micro.y"
     {
 (yyval.sval) = "FLOAT";
 ;}
@@ -1714,7 +1721,7 @@ while(varList)
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 247 "src/Micro.y"
+#line 254 "src/Micro.y"
     {
 (yyval.sval) = "INT";
 ;}
@@ -1723,35 +1730,35 @@ while(varList)
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 251 "src/Micro.y"
+#line 258 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 252 "src/Micro.y"
+#line 259 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 254 "src/Micro.y"
+#line 261 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (2)].sval);;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 256 "src/Micro.y"
+#line 263 "src/Micro.y"
     {sprintf((yyval.sval), "%s %s", (yyvsp[(1) - (3)].sval), (yyvsp[(2) - (3)].sval));;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 263 "src/Micro.y"
+#line 270 "src/Micro.y"
     {
 	if (head == 0){
 		head = (block*)malloc(sizeof(block));
@@ -1777,7 +1784,7 @@ while(varList)
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 290 "src/Micro.y"
+#line 297 "src/Micro.y"
     {
 //cout <<"\nSymbol table "<<$<sval>3<<endl;
 if(dispHead==0)
@@ -1835,7 +1842,7 @@ init = 0;
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 390 "src/Micro.y"
+#line 397 "src/Micro.y"
     {
 	val = val + 1;
 	if (head == 0){
@@ -1861,7 +1868,7 @@ init = 0;
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 416 "src/Micro.y"
+#line 423 "src/Micro.y"
     {
 	val = val + 1;	
 	if (head == 0){
@@ -1887,7 +1894,7 @@ init = 0;
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 449 "src/Micro.y"
+#line 456 "src/Micro.y"
     {
 	val = val + 1;	
 	if (head == 0){
@@ -1914,7 +1921,7 @@ init = 0;
 
 
 /* Line 1455 of yacc.c  */
-#line 1918 "Micro.tab.c"
+#line 1925 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2126,7 +2133,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 474 "src/Micro.y"
+#line 481 "src/Micro.y"
 
 
 //checks for duplicates in linked list
@@ -2152,6 +2159,13 @@ int checkDuplicate(struct block *head){
 
 				if(countDuplicate>1)
 				{
+					/*
+					int strLen = tempHead3->value->length();
+					string x = tempHead3->value->substr(5,strLen);
+					int spacePos = x.find(" ");
+					string var = x.substr(0,spacePos);
+					cout<<"DECLARATION ERROR "<<var<<endl;
+					*/
 					retVal = -1;
 					break;
 				}
@@ -2171,28 +2185,38 @@ void printList(struct block *head){
 	}
 }
 
+block *newBlock() {
+	struct block *head = (block*)malloc(sizeof(block));
+	head->value = new string("");
+	head->next = NULL;
+	return head;
+}
+
+ast *newAST(){
+	struct ast *head = (ast*)malloc(sizeof(ast));
+	head->value = new string("");
+	head->left = NULL;
+	head->right = NULL;
+	return head;
+}
+
 void generateList(){
-	string strList[] = {"abc","acd","dac","dac"};
+	string strList[] = {"abc","acd","dac","abc"};
 	int i = 0;
-	
+	string key = "GLOBAL";
 	int length = sizeof(strList)/sizeof(strList[0]);
 	
-	struct block *head = (block*)malloc(sizeof(block));
+	struct block *head = newBlock();
 	struct block *temp = head;
 	while(i<length){
 		temp->value = new string(strList[i]);
-		temp->next = (block*)malloc(sizeof(block));
+		temp->next = newBlock();
 		temp = temp->next;
 		i = i + 1;
-	}
-	if(!checkDuplicate(head)){
-		printList(head);
-	}
-	else{
-		cout<<"Duplicate Error!"<<endl;
 	}		
 }
 
+	
 int main(int argc, char *argv[]) {
   /*
   if (argc != 2)

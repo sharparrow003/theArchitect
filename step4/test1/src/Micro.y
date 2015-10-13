@@ -12,6 +12,17 @@ struct block
 	struct block * next;		
 };
 
+struct astList
+{
+	
+
+struct ast
+{
+	string *value;
+	struct ast *left;
+	struct ast *right;
+};
+
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
@@ -21,7 +32,7 @@ void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 int checkDuplicate(struct block *head);
 void printList(struct block *head);
 void generateList();
-
+block *newBlock();
 
 
 static int val=0; //Determines which block is being found
@@ -496,6 +507,13 @@ int checkDuplicate(struct block *head){
 
 				if(countDuplicate>1)
 				{
+					/*
+					int strLen = tempHead3->value->length();
+					string x = tempHead3->value->substr(5,strLen);
+					int spacePos = x.find(" ");
+					string var = x.substr(0,spacePos);
+					cout<<"DECLARATION ERROR "<<var<<endl;
+					*/
 					retVal = -1;
 					break;
 				}
@@ -515,28 +533,37 @@ void printList(struct block *head){
 	}
 }
 
+block *newBlock() {
+	struct block *head = (block*)malloc(sizeof(block));
+	head->value = new string("");
+	head->next = NULL;
+	return head;
+}
+
+ast *newAST(){
+	struct ast *head = (ast*)malloc(sizeof(ast));
+	head->value = new string("");
+	head->left = NULL;
+	head->right = NULL;
+	return head;
+}
+
 void generateList(){
-	string strList[] = {"abc","acd","dac","dac"};
+	string strList[] = {"abc","acd","dac","abc"};
 	int i = 0;
-	
+	string key = "GLOBAL";
 	int length = sizeof(strList)/sizeof(strList[0]);
 	
-	struct block *head = (block*)malloc(sizeof(block));
+	struct block *head = newBlock();
 	struct block *temp = head;
 	while(i<length){
 		temp->value = new string(strList[i]);
-		temp->next = (block*)malloc(sizeof(block));
+		temp->next = newBlock();
 		temp = temp->next;
 		i = i + 1;
-	}
-	if(!checkDuplicate(head)){
-		printList(head);
-	}
-	else{
-		cout<<"Duplicate Error!"<<endl;
 	}		
-}
-
+}	
+	
 int main(int argc, char *argv[]) {
   /*
   if (argc != 2)
