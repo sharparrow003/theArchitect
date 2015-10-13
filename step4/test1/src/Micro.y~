@@ -16,7 +16,14 @@ extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
 
-void yyerror(const char *s) { cerr << "Not Accepted" << endl; exit(0); }
+/*Function declarations */
+void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
+int checkDuplicate(struct block *head);
+void printList(struct block *head);
+void generateList();
+
+
+
 static int val=0; //Determines which block is being found
 static int init = 0; //Determines whether program has exited scope and thus assign head of linked list again
 static int scope = 0; //Determines whether program has finished processing Global variables
@@ -25,7 +32,6 @@ static struct block * curr = 0;
 static struct block * dispHead = 0;
 static struct block * dispCurr = 0;
 %}
-
 
 %union {
 	int ival;
@@ -465,12 +471,74 @@ for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP de
 
 empty:    
 ;
-
-
-
 %%
 
+//checks for duplicates in linked list
+//0: Success
+//-1: DUPLICATE!!
+int checkDuplicate(struct block *head){
+	int retVal = 0;
+	
+	struct block *tempHead1 = head;
+	struct block *tempHead2 = head;
+	struct block *tempHead3 = head;
+	int countDuplicate = 0;
+
+	while(tempHead2->next!=NULL)
+	{
+		tempHead3 = tempHead2;
+		countDuplicate = 0;
+		while(tempHead3->next!=NULL)
+		{
+			if(*tempHead3->value == *tempHead2->value)
+			{
+				countDuplicate = countDuplicate+1;
+
+				if(countDuplicate>1)
+				{
+					retVal = -1;
+					break;
+				}
+			}
+			tempHead3 = tempHead3->next;
+		}
+		tempHead2=tempHead2->next;
+	}
+	return retVal;
+}		
+
+void printList(struct block *head){
+	
+	while(head->next!=NULL){
+		cout<<*head->value<<endl;
+		head = head->next;
+	}
+}
+
+void generateList(){
+	string strList[] = {"abc","acd","dac"};
+	int i = 0;
+	
+	int length = sizeof(strList)/sizeof(strList[0]);
+	
+	struct block *head = (block*)malloc(sizeof(block));
+	struct block *temp = head;
+	while(i<length){
+		temp->value = new string(strList[i]);
+		temp->next = (block*)malloc(sizeof(block));
+		temp = temp->next;
+		i = i + 1;
+	}
+	if(!checkDuplicate(head)){
+		printList(head);
+	}
+	else{
+		cout<<"Duplicate Error!"<<endl;
+	}		
+}
+
 int main(int argc, char *argv[]) {
+  /*
   if (argc != 2)
   {
     printf("Error! Usage: Micro <filename>");
@@ -487,6 +555,8 @@ int main(int argc, char *argv[]) {
       yyparse();
     } while (!feof(yyin));
   }
+  */
+  generateList();
 }
 
 
