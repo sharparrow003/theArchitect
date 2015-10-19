@@ -25,8 +25,10 @@ using namespace std;
 (VOID)                                                                                                  { return VOID; }
 (STRING)                                                                                                { return STRING; }
 (FLOAT)                                                                                                 { return FLOAT; }
-(\+|-)                                                                                                  { return ADDOP; }
-(\*|\/)                                                                                                 { return MULOP; }
+(\+)                                                                                                    { return ADDOP; }
+(-)                                                                                                     { return SUBOP; }
+(\*)                                                                                                    { return MULOP; }
+(\/)                                                                                                    { return DIVOP;}
 (<|>|=|!=|<=|>=)                                                                                        { return COMPOP; }
 (:=)                                                                                                    { return ASSMTOP; }
 (\()                                                                                                    { return OPENPAROP; }
