@@ -34,8 +34,10 @@ class ast {
 	private:
 		void destroy_tree(node *);
 };
+//int scope;
 ast myast;
 list<ast> astlist;
+list<string> varlist;
 
 void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 %}
@@ -95,8 +97,6 @@ pgm_body: decl func_declarations
 
 decl: string_decl decl 
 | var_decl decl 
-{
-}
 | empty 
 ;
 
@@ -110,7 +110,16 @@ str: STRLIT  {$<sval>$ = $1; }
 
 var_decl: var_type id_list SCOLONOP 
 {
-	//char * varList = strtok($<sval>2," ");
+	string s1($<sval>2);
+	istringstream iss(s1);
+	while(iss){
+		string s2;
+		iss >> s2;
+		string s3 = $<sval>1;
+		if(s2 != ""){
+			varlist.push_back(s3 + " " + s2);			 
+		}
+	}
 }
 ;
 
@@ -172,8 +181,8 @@ assign_stmt: assign_expr SCOLONOP
 	//myast.inorder($<nval>1); 
 	//cout << "Started pre order!" << endl;
 	//myast.preorder($<nval>1);
-	//cout << "Started post order!" << endl;
-	//myast.postorder($<nval>1);
+	cout << "Started post order!" << endl;
+	myast.postorder($<nval>1);
 	//cout << "HEAD-> " << *(myast.root->value) << endl;
 	astlist.push_back(myast);
 	myast = ast(); 	
@@ -509,10 +518,15 @@ int main(int argc, char *argv[]) {
     //Access astlist here like any linked list 
     
     //Access example below
-    cout << "Front of the list!" << endl;
-    myast.inorder((astlist.front()).root);
-    cout << "Back of the list!" << endl;
-    myast.inorder((astlist.back()).root);	
+    //cout << "Front of the list!" << endl;
+    //myast.inorder((astlist.front()).root);
+    //cout << "Back of the list!" << endl;
+    //myast.inorder((astlist.back()).root);
+    for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
+	//NOTE: strings in this list are actual strings not pointers
+        //This is example code for iterating through the list
+	cout << *iterator << endl;
+    }	
   }
 }
 
