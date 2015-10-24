@@ -6,17 +6,14 @@
 #include <string>
 #include <sstream>
 using namespace std;
-
 struct node{
 	string *value;
 	struct node *left;
 	struct node *right;
 };
-
 extern "C" int yylex();
 extern "C" int yyparse();
 extern "C" FILE *yyin;
-
 /*Function declarations */
 class ast {
 	public:
@@ -38,10 +35,20 @@ class ast {
 ast myast;
 list<ast> astlist;
 list<string> varlist;
+list<string> astPostOrder;
+list<string> IRNodeList;
+static int registerValue = 1;
+list <string> IRList;
+string datatype="i";
+static node * exprhead = 0;
+void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
+list<string> generateTinyCode();		//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
+int getRegister(string IRReg);					//Calculates the register number from IR Node ***IMPORTANT***
+
+int regVal = 0;
 
 void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 %}
-
 %union {
 	int ival;
 	float fval;
@@ -49,7 +56,6 @@ void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 	char *iden;
 	struct node *nval;
 }
-
 %token PROGRAM
 %token BEGIN_TOKEN
 %token END
@@ -82,32 +88,25 @@ void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 %token <fval> FLTLIT
 %token <sval> STRLIT
 %token <iden> IDENTIFIER
-
 %%
 program: PROGRAM id BEGIN_TOKEN pgm_body END 
 {
 }
 ;
-
 id: IDENTIFIER  {$<sval>$ = $1;}
 ;
-
 pgm_body: decl func_declarations    
 ;
-
 decl: string_decl decl 
 | var_decl decl 
 | empty 
 ;
-
 string_decl: STRING id ASSMTOP str SCOLONOP  
 {
 }
 ;
-
 str: STRLIT  {$<sval>$ = $1; }
 ;
-
 var_decl: var_type id_list SCOLONOP 
 {
 	string s1($<sval>2);
@@ -122,73 +121,57 @@ var_decl: var_type id_list SCOLONOP
 	}
 }
 ;
-
 var_type: FLOAT {$<sval>$ = "FLOAT";}
 | INT {$<sval>$ = "INT";
 }
 ;
-
 any_type: var_type {$<sval>$ = $<sval>1;}
 | VOID  {$<sval>$ = $<sval>1;}
 ;
-
 id_list: id id_tail {$<sval>$ = $<sval>1;}
 ;
-
 id_tail: COMMAOP id id_tail 
 {
 	sprintf($<sval>$, "%s %s", $<sval>1, $<sval>2);
 }
 | empty 
 ;
-
 param_decl_list: param_decl param_decl_tail
 {
 }
 | empty   
 ;
-
 param_decl: var_type id  
 {
 }
 ;
-
 param_decl_tail: COMMAOP param_decl param_decl_tail | empty  
 ;
-
 func_declarations: func_decl func_declarations | empty   
 ;
-
 func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN func_body END 
-
 ;
-
 func_body: decl stmt_list
 ;
-
 stmt_list: stmt stmt_list | empty  
 ;
-
 stmt: base_stmt | if_stmt | for_stmt  
 ;
-
 base_stmt: assign_stmt | read_stmt | write_stmt | return_stmt   
 ;
-
 assign_stmt: assign_expr SCOLONOP   
 {
         //cout << "Started in order!" << endl;
 	//myast.inorder($<nval>1); 
 	//cout << "Started pre order!" << endl;
 	//myast.preorder($<nval>1);
-	cout << "Started post order!" << endl;
-	myast.postorder($<nval>1);
+	//cout << "Started post order!" << endl;
+	//myast.postorder($<nval>1);
 	//cout << "HEAD-> " << *(myast.root->value) << endl;
 	astlist.push_back(myast);
 	myast = ast(); 	
 }
 ;
-
 assign_expr: id ASSMTOP expr  
 {
 	node *temp1;
@@ -200,7 +183,6 @@ assign_expr: id ASSMTOP expr
 }
 //New ASSMTOP head with id as left, expr head as right
 ;
-
 read_stmt: READ OPENPAROP id_list CLOSEPAROP SCOLONOP  
 {	
 	string s1($<sval>3);
@@ -219,7 +201,6 @@ read_stmt: READ OPENPAROP id_list CLOSEPAROP SCOLONOP
 	}
 }
 ;
-
 write_stmt: WRITE OPENPAROP id_list CLOSEPAROP SCOLONOP  
 {
 	string s1($<sval>3);
@@ -238,14 +219,13 @@ write_stmt: WRITE OPENPAROP id_list CLOSEPAROP SCOLONOP
 	}
 }
 ;
-
 return_stmt: RETURN expr SCOLONOP   
 ;
-
 expr: expr_prefix factor 
 {
 	if($<nval>1 == 0){
 		$<nval>$ = $<nval>2;
+		exprhead = 0;
 	}
 	else{
 		myast.addright($<nval>1, $<nval>2);
@@ -255,7 +235,6 @@ expr: expr_prefix factor
 //If expr_prefix is null, use factor
 //Else add factor to rightside of expr_prefix
 ;
-
 expr_prefix: expr_prefix factor addop
 {
 	if ($<nval>1 != 0 && $<nval>2 != 0){
@@ -265,6 +244,7 @@ expr_prefix: expr_prefix factor addop
 	}
 	else if ($<nval>1 == 0 && $<nval>2 != 0){
 		node *temp = myast.newmath($<nval>2, $<sval>3);
+		exprhead = temp;
 		$<nval>$ = temp;
 	}
 	else{
@@ -276,7 +256,6 @@ expr_prefix: expr_prefix factor addop
 | empty
 {$<nval>$ = 0}   
 ;
-
 factor: factor_prefix postfix_expr
 {
 	if($<nval>1 == 0){
@@ -289,9 +268,7 @@ factor: factor_prefix postfix_expr
 }    
 //If factor_prefix is null, use postfix expr
 //Else add postfixexpr to right side of factor_prefix
-
 ;
-
 factor_prefix: factor_prefix postfix_expr mulop
 {
 	if ($<nval>1 != 0 && $<nval>2 != 0){
@@ -312,26 +289,27 @@ factor_prefix: factor_prefix postfix_expr mulop
 | empty
 {$<nval>$ = 0;}
 ;
-
 postfix_expr: primary 
 {
 	$<nval>$ = $<nval>1;
 }
 | call_expr   
 ;
-
 call_expr: id OPENPAROP expr_list CLOSEPAROP
 ;
-
 expr_list: expr expr_list_tail | empty   
 ;
-
 expr_list_tail: COMMAOP expr expr_list_tail | empty   
 ;
-
 primary: OPENPAROP expr CLOSEPAROP 
 {
-	$<nval>$ = $<nval>2;
+	if (exprhead != 0){
+		$<nval>$ = exprhead;
+		exprhead = 0;
+	}
+	else{
+		$<nval>$ = $<nval>2;
+	}
 }
 | id
 {
@@ -353,24 +331,20 @@ primary: OPENPAROP expr CLOSEPAROP
 	$<nval>$ = temp;
 }
 ;
-
 addop: ADDOP 
 {$<sval>$ = "+";}
 | SUBOP
 {$<sval>$ = "-";}   
 ;
-
 mulop: MULOP 
 {$<sval>$ = "*";}
 | DIVOP
 {$<sval>$ = "/";}   
 ;
-
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
 {		
 }
 ;
-
 else_part: ELSE decl stmt_list 
 /*{
 val = val + 1;
@@ -380,40 +354,29 @@ sprintf($<sval>$, "%s %s", "\nSymbol table BLOCK ", val);
 }
 | empty  
 ;
-
 cond: expr compop expr  
 ;
-
 compop: COMPOP   
 ;
-
 init_stmt: assign_expr | empty   
 ;
-
 incr_stmt: assign_expr | empty   
 ;
-
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
 }
 ;
-
 empty:    
 ;
 %%
-
-
-
 ast::ast() {
 	root = 0;
 }
-
 ast::~ast() {
 	if (root != 0){
 		delete root;
 	}
 }
-
 void ast::destroy_tree(node *leaf){
 	if(leaf != 0){
 		destroy_tree(leaf->left);
@@ -427,11 +390,9 @@ void ast::destroy_tree(node *leaf){
 	}
 	root = 0;
 }
-
 void ast::destroy_tree(){
 	destroy_tree(root);
 }
-
 void ast::addright(node *head, node *leaf){
 	if(leaf != 0 && head != 0){
 		if(root == leaf){
@@ -441,7 +402,6 @@ void ast::addright(node *head, node *leaf){
 		head->right = leaf;
 	}
 }
-
 void ast::inorder(node *head){
 	if(head != 0){
 		inorder(head->left);
@@ -449,7 +409,6 @@ void ast::inorder(node *head){
 		inorder(head->right);
 	}
 }
-
 void ast::preorder(node *head){
 	if(head != 0){
 		cout << *(head->value) << endl;
@@ -457,7 +416,6 @@ void ast::preorder(node *head){
 		preorder(head->right);
 	}
 }
-
 void ast::postorder(node *head){
 	if(head != 0){
 		postorder(head->left);
@@ -465,9 +423,7 @@ void ast::postorder(node *head){
 		cout << *(head->value) << endl;
 	}
 }
-
 //node *ast::new(node *value, string operation)
-
 node *ast::newval(string key){
 	node *head = new node();
 	if (root == 0){root = head;}
@@ -476,7 +432,6 @@ node *ast::newval(string key){
 	head->right = 0;
 	return head;
 }
-
 node *ast::newop(node *value, string operation){
 	node *head = new node();
 	if (root == value){root = head;}
@@ -485,7 +440,6 @@ node *ast::newop(node *value, string operation){
 	head->right = value;
 	return head;	
 }
-
 node *ast::newmath(node *value, string operation){
 	node *head = new node();
 	if (root == value){root = head;}
@@ -495,39 +449,885 @@ node *ast::newmath(node *value, string operation){
 	head->right = 0;
 	return head;
 }
+
 	
-
-
-int main(int argc, char *argv[]) {
-  if (argc != 2)
-  {
-    printf("Error! Usage: Micro <filename>");
-  }
-  else
-  {
-    FILE *myfile = fopen(argv[1], "r");
-    if (!myfile) {
-      cout << "File could not be opened" << endl;
-      return -1;
-    }
-    yyin = myfile;
-    myast = ast();
-    do {
-      yyparse();
-    } while (!feof(yyin));
-    //Access astlist here like any linked list 
-    
-    //Access example below
-    //cout << "Front of the list!" << endl;
-    //myast.inorder((astlist.front()).root);
-    //cout << "Back of the list!" << endl;
-    //myast.inorder((astlist.back()).root);
-    for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
-	//NOTE: strings in this list are actual strings not pointers
-        //This is example code for iterating through the list
-	cout << *iterator << endl;
-    }	
-  }
+void printList(ast myast) {
+	while (!astlist.empty()) {
+		 myast.postorder((astlist.front()).root);
+		 astlist.pop_front();
+	}
 }
 
+void generateIRPostOrderList(node *head) {
+	if(head != 0){
+		generateIRPostOrderList(head->left);
+		generateIRPostOrderList(head->right);
+		astPostOrder.push_back(*(head->value));
+	}
+}
 
+void checkDatatype(string var) {
+	list <string> varlistTemp = varlist;
+	string type;
+	string varTemp;
+	
+	while(!varlistTemp.empty()) {
+		istringstream iss(varlistTemp.front());
+		iss >> type;
+		iss >> varTemp;
+
+		if(varTemp == var) {
+			if(type == "INT") {
+				datatype = "i";
+			}
+			else {
+				datatype = "f";
+			}
+		}
+		varlistTemp.pop_front();
+	}
+}
+
+void generateIRList() {
+	ast astNode = ast();
+	list<string> temp;
+	string op1;
+	string op2;
+	string result;
+
+	string regStore;
+	string IRDisplay;
+	ostringstream convert;
+	while (!astlist.empty()) {
+		astNode = astlist.front();
+		generateIRPostOrderList(astNode.root);
+		astlist.pop_front();
+	}
+
+	while(!astPostOrder.empty()) {
+		/*
+		if (IRNodeList.front()[0] != '=' || IRNodeList.front()[0] != '+' || IRNodeList.front()[0] != '-' || IRNodeList.front()[0] != '*' || IRNodeList.front()[0] != '/' || IRNodeList.front() != "READ" || IRNodeList.front() != "WRITE") {
+			temp.push_back (IRNodeList.front());
+			//temp.push_back ("OP");
+		}
+		else {
+			temp.push_back ("OP");
+			
+		}
+		*/
+		
+		if(astPostOrder.front()[0] == '=') {
+			convert << registerValue;
+			regStore = "$T"+convert.str();
+
+			op1 = temp.back();
+
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op1+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+				temp.pop_back();
+
+				op1 = temp.back();
+				temp.pop_back();
+				IRDisplay = "STOREI "+regStore+" "+op1;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "STOREF "+op1+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+				temp.pop_back();
+
+				op1 = temp.back();
+				temp.pop_back();
+				IRDisplay = "STOREF "+regStore+" "+op1;
+				IRNodeList.push_back(IRDisplay);
+			}
+			
+			temp.push_back(regStore);
+			registerValue = registerValue + 1;
+			convert.str("");
+		}
+		else if (astPostOrder.front()[0] == '+') {
+			convert << registerValue;
+			regStore = "$T"+convert.str();
+
+			op2 = temp.back();
+			temp.pop_back();
+			op1 = temp.back();
+			temp.pop_back();
+
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			else if(op2[0] != '$') {
+				//checkDatatype(op2);
+			}
+			if(datatype == "i") {
+				IRDisplay = "ADDI "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "ADDF "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			
+			temp.push_back(regStore);
+			registerValue = registerValue + 1;
+			convert.str("");
+		}
+
+		else if (astPostOrder.front()[0] == '-') {
+			convert << registerValue;
+			regStore = "$T"+convert.str();
+
+			op2 = temp.back();
+			temp.pop_back();
+			op1 = temp.back();
+			temp.pop_back();
+			
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			else if(op2[0] != '$') {
+				checkDatatype(op2);
+			}
+			if(datatype == "i") {
+				IRDisplay = "SUBI "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "SUBF "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			
+			temp.push_back(regStore);
+			registerValue = registerValue + 1;
+			convert.str("");
+		}
+		
+		else if (astPostOrder.front()[0] == '*') {
+			convert << registerValue;
+			regStore = "$T"+convert.str();
+
+			op2 = temp.back();
+			temp.pop_back();
+			op1 = temp.back();
+			temp.pop_back();
+
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			else if(op2[0] != '$') {
+				checkDatatype(op2);
+			}
+			if(datatype == "i") {		
+				IRDisplay = "MULTI "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "MULTF "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			
+			temp.push_back(regStore);
+			registerValue = registerValue + 1;
+			convert.str("");
+		}
+	
+		else if (astPostOrder.front()[0] == '/') {
+			convert << registerValue;
+			regStore = "$T"+convert.str();
+
+			op2 = temp.back();
+			temp.pop_back();
+			op1 = temp.back();
+			temp.pop_back();
+
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			else if(op2[0] != '$') {
+				checkDatatype(op2);
+			}
+			if(datatype == "i") {
+				IRDisplay = "DIVI "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "DIVF "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			
+			temp.push_back(regStore);
+			registerValue = registerValue + 1;
+			convert.str("");
+		}		
+
+		else if(astPostOrder.front() == "READ") {
+
+			op1 = temp.back();
+			
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			
+			if(datatype == "i") {
+				IRDisplay = "READI "+op1;		
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "READF "+op1;		
+				IRNodeList.push_back(IRDisplay);
+			}
+			temp.pop_back();
+		}
+
+		else if(astPostOrder.front() == "WRITE") {
+
+			op1 = temp.back();
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			
+			if(datatype == "i") {
+				IRDisplay = "WRITEI "+op1;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "WRITEF "+op1;
+				IRNodeList.push_back(IRDisplay);
+			}
+			temp.pop_back();
+		}
+
+		else {
+			temp.push_back(astPostOrder.front());
+		}
+		astPostOrder.pop_front();
+	}
+
+	list <string> IRNodeListDisplay = IRNodeList;
+	IRList = IRNodeList;	
+	
+       	cout<<";IR code"<<endl;
+	while (!IRNodeListDisplay.empty()) {
+		cout<<";"<<IRNodeListDisplay.front()<<endl;
+		IRNodeListDisplay.pop_front();
+	}
+	
+}	
+
+int getRegister(string IRReg){
+	int strLen = IRReg.length();
+	string IRRegVal =  IRReg.substr(2, strLen-2);
+	int regReturn = atoi(IRRegVal.c_str()) - 1;
+	
+	return regReturn;
+}
+	
+
+list<string> generateTinyCode() {
+	list<string> tinyCode;
+	
+	
+
+	while(!IRList.empty()){
+		string stmtIR = IRList.front();
+		string temp;
+		string op;
+		string op1;
+		string op2;
+		string result;
+		string label;
+		int regVal1;
+		int regVal2;
+		int regVal3;
+	
+		string tinyStmt;
+
+		temp = stmtIR;
+
+		istringstream iss(temp);
+
+		iss>>op;
+		
+		//tinyCode.push_back(op);
+
+		//ADDI op1 op2 Result
+		if (op == "ADDI") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "addi "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "addi r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}
+		//ADDF op1 op2 Result
+		else if (op == "ADDF") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "addr "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "addr r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}
+		//SUBI op1 op2 Result
+		else if (op == "SUBI") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "subi "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "subi r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}
+		//SUBF op1 op2 Result
+		else if (op == "ADDF") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "subr "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "subr r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}
+
+		//MULTI op1 op2 Result
+		else if (op == "MULTI") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "muli "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "muli r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}
+
+		//MULTF op1 op2 Result
+		else if (op == "MULTF") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "mulr "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "mulr r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}
+		//DIVI op1 op2 Result
+		else if (op == "DIVI") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "divi "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "divi r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}		
+
+		//DIVF op1 op2 Result
+		else if (op == "DIVF") {
+			iss >> op1;
+			iss >> op2;
+			iss >> result;
+			ostringstream convert;
+			
+			if (op1[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move "+op1+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+			else {
+				convert.str("");
+				regVal1 = getRegister(op1);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "move r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}
+			
+			if (op2[0] != '$') {
+				convert.str("");
+				regVal1 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "divr "+op2+" r"+convert.str();
+				tinyCode.push_back(tinyStmt);
+			}
+
+			else {
+				convert.str("");
+				regVal1 = getRegister(op2);
+				regVal2 = getRegister(result);
+				convert << regVal1;
+				tinyStmt = "divr r"+convert.str()+" ";
+				convert.str("");
+				convert << regVal2;
+				tinyStmt = tinyStmt+" r"+convert.str()+" ";
+				tinyCode.push_back(tinyStmt);
+			}			
+					
+		}	
+
+		//STOREI op1 Result
+		else if (op == "STOREI") {
+			iss >> op1;
+			iss >> result;
+			tinyStmt = "move ";
+			ostringstream convert;
+
+			if(op1[0] == '$'){
+				convert.str("");
+				regVal1 = getRegister(op1);
+				convert << regVal1;
+				tinyStmt = tinyStmt+"r"+convert.str()+" ";
+			}
+			else {
+				tinyStmt = tinyStmt+op1+" ";
+			}
+
+			if(result[0] == '$'){
+				convert.str("");
+				regVal2 = getRegister(result);
+				convert << regVal2;
+				tinyStmt = tinyStmt+"r"+convert.str();
+			}
+			else {
+				tinyStmt = tinyStmt+result+" ";
+			}
+
+			//regVal = regVal + 1;
+			tinyCode.push_back(tinyStmt);	
+				
+			
+		}
+		//STOREF op1 Result
+		else if (op == "STOREF") {
+			iss >> op1;
+			iss >> result;
+			tinyStmt = "move ";
+			ostringstream convert;
+
+			if(op1[0] == '$'){
+				convert.str("");
+				regVal1 = getRegister(op1);
+				convert << regVal1;
+				tinyStmt = tinyStmt+"r"+convert.str()+" ";
+			}
+			else {
+				tinyStmt = tinyStmt+op1+" ";
+			}
+
+			if(result[0] == '$'){
+				convert.str("");
+				regVal2 = getRegister(result);
+				convert << regVal2;
+				tinyStmt = tinyStmt+"r"+convert.str()+" ";
+			}
+			else {
+				tinyStmt = tinyStmt+result+" ";
+			}
+
+			//regVal = regVal + 1;
+			tinyCode.push_back(tinyStmt);	
+				
+			
+		}
+		//GT op1 op2 Label
+		/*
+		else if (op == "GT") {
+			iss >> op1;
+			iss >> op2;
+			iss >> label;
+
+			
+		}
+		*/
+		//GE
+
+		//LT
+
+		//LE
+
+		//NE
+
+		//EQ
+
+		//JUMP
+
+		//LABEL
+
+		//READI
+		else if (op == "READI") {
+			iss >> result;
+	
+			tinyStmt = "sys readi "+result;
+			tinyCode.push_back(tinyStmt);
+		}
+		//READF
+		else if (op == "READF") {
+			iss >> result;
+	
+			tinyStmt = "sys readr "+result;
+			tinyCode.push_back(tinyStmt);
+		}
+		//WRITEI
+		else if (op == "WRITEI") {
+			iss >> result;
+	
+			tinyStmt = "sys writei "+result;
+			tinyCode.push_back(tinyStmt);
+		}
+		//WRITEF
+		else if (op == "WRITEF") {
+			iss >> result;	
+			tinyStmt = "sys writer "+result;
+			tinyCode.push_back(tinyStmt);
+		}
+
+		IRList.pop_front();
+	}
+	
+	tinyCode.push_back("sys halt");
+	return tinyCode;
+}
+	
+int main(int argc, char *argv[]) {
+  	if (argc != 2){
+    		printf("Error! Usage: Micro <filename>");
+  	}
+  	else{
+		FILE *myfile = fopen(argv[1], "r");	
+    		if (!myfile) {
+      			cout << "File could not be opened" << endl;
+      			return -1;
+    		}
+    		yyin = myfile;
+    		myast = ast();
+    		do {
+      			yyparse();
+    		} while (!feof(yyin));
+    	//Access astlist here like any linked list 
+    
+    	//Access example below
+    	//cout << "Front of the list!" << endl;
+    	//myast.inorder((astlist.front()).root);
+    	//cout << "Back of the list!" << endl;
+    	//myast.inorder((astlist.back()).root);
+    
+    	/*
+    	for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
+		//NOTE: strings in this list are actual strings not pointers
+        	//This is example code for iterating through the list
+		cout << i<<" "<<*iterator << endl;
+		i = i + 1;
+    	}*/
+		generateIRList();
+  		list<string> tinyCode = generateTinyCode();
+
+  		list<string> varlistTemp = varlist;
+		list<string> varlistLoad;
+		string var;
+		string varTemp;
+
+		while(!varlistTemp.empty()) {
+			//NOTE: strings in this list are actual strings not pointers
+			//This is example code for iterating through the list
+			//cout <<*iterator << endl;
+			//i = i + 1;
+			istringstream iss(varlistTemp.front());
+			var = "";
+			iss>>var;
+			var = "";
+			iss>>var;
+			varTemp = "var "+var;
+			varlistLoad.push_front(varTemp);
+			varlistTemp.pop_front();
+    		}
+
+		while(!varlistLoad.empty()) {
+			tinyCode.push_front(varlistLoad.front());
+			varlistLoad.pop_front();
+		}
+		cout<<";tiny code"<<endl;
+        	while (!tinyCode.empty()) {
+			cout<<tinyCode.front()<<endl;
+			tinyCode.pop_front();
+		}
+	}//END OF ELSE STATEMENT
+	
+}
