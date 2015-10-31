@@ -111,9 +111,8 @@ var_decl: var_type id_list SCOLONOP
 {
 	string s1($<sval>2);
 	istringstream iss(s1);
-	while(iss){
-		string s2;
-		iss >> s2;
+	string s2;
+	while(iss >> s2){
 		string s3 = $<sval>1;
 		if(s2 != ""){
 			varlist.push_back(s3 + " " + s2);			 
@@ -128,13 +127,40 @@ var_type: FLOAT {$<sval>$ = "FLOAT";}
 any_type: var_type {$<sval>$ = $<sval>1;}
 | VOID  {$<sval>$ = $<sval>1;}
 ;
-id_list: id id_tail {$<sval>$ = $<sval>1;}
+id_list: id id_tail {
+	if($<sval>2 != 0){
+		string s1;
+		string s2($<sval>2);
+		stringstream ss;
+		ss << $<sval>1 << " " << $<sval>2;
+		s1 = ss.str();
+		const char *temp = s1.c_str();
+		$<sval>$ = (char*)temp;
+	}
+	else{
+		$<sval>$ = $<sval>1;
+	}
+}
 ;
-id_tail: COMMAOP id id_tail 
-{
-	sprintf($<sval>$, "%s %s", $<sval>1, $<sval>2);
+id_tail: COMMAOP id id_tail {
+	string s1;
+	stringstream ss;
+	if (!$<sval>3){
+		s1 = string($<sval>2);
+		const char *temp = s1.c_str();
+		$<sval>$ = (char*)temp;
+	}
+	else{
+		ss << $<sval>2 << " " << $<sval>3;
+		s1 =ss.str();
+		const char *temp = s1.c_str();
+		$<sval>$ = (char*)temp;
+	}
 }
 | empty 
+{
+	$<sval>$ = 0;
+}
 ;
 param_decl_list: param_decl param_decl_tail
 {
@@ -187,9 +213,8 @@ read_stmt: READ OPENPAROP id_list CLOSEPAROP SCOLONOP
 {	
 	string s1($<sval>3);
 	istringstream iss(s1);
-	while(iss){
-		string s2;
-		iss >> s2;
+	string s2;
+	while(iss >> s2){
 		if(s2 != ""){
 			node *temp1 = myast.newval(s2);
 			node *temp2 = myast.newop(temp1,"READ");
@@ -205,9 +230,8 @@ write_stmt: WRITE OPENPAROP id_list CLOSEPAROP SCOLONOP
 {
 	string s1($<sval>3);
 	istringstream iss(s1);
-	while(iss){
-		string s2;
-		iss >> s2;
+	string s2;
+	while(iss >> s2){
 		if(s2 != ""){
 			node *temp1 = myast.newval(s2);
 			node *temp2 = myast.newop(temp1,"WRITE");
