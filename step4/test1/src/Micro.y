@@ -398,7 +398,7 @@ ast::ast() {
 }
 ast::~ast() {
 	if (root != 0){
-		delete root;
+		//delete root;
 	}
 }
 void ast::destroy_tree(node *leaf){
