@@ -1,0 +1,23 @@
+READF num
+STOREI 1 $T1
+STOREI $T1 j
+STOREF num approx
+STOREI 100 $T2
+STOREI $T2 i
+LABEL label1
+STOREI 0 $T3
+EQ i $T3 label3
+STOREF 0.5 $T6
+DIVF num approx $T7
+ADDF approx $T7 $T8
+MULTF $T6 $T8 $T9
+STOREF $T9 newapprox
+STOREF newapprox approx
+LABEL label2
+STOREI 1 $T4
+SUBI i $T4 $T5
+STOREI $T5 i
+JUMP label1
+LABEL label3
+WRITEF approx
+WRITES eol

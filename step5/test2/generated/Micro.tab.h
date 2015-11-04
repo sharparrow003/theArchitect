@@ -61,16 +61,21 @@
      SUBOP = 277,
      MULOP = 278,
      DIVOP = 279,
-     COMPOP = 280,
-     ASSMTOP = 281,
-     OPENPAROP = 282,
-     CLOSEPAROP = 283,
-     SCOLONOP = 284,
-     COMMAOP = 285,
-     INTLIT = 286,
-     FLTLIT = 287,
-     STRLIT = 288,
-     IDENTIFIER = 289
+     GREATER = 280,
+     LESSER = 281,
+     EQUALS = 282,
+     NEQUALS = 283,
+     LEQUALS = 284,
+     GEQUALS = 285,
+     ASSMTOP = 286,
+     OPENPAROP = 287,
+     CLOSEPAROP = 288,
+     SCOLONOP = 289,
+     COMMAOP = 290,
+     INTLIT = 291,
+     FLTLIT = 292,
+     STRLIT = 293,
+     IDENTIFIER = 294
    };
 #endif
 
@@ -81,7 +86,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 52 "src/Micro.y"
+#line 53 "src/Micro.y"
 
 	int ival;
 	float fval;
@@ -92,7 +97,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 96 "Micro.tab.h"
+#line 101 "Micro.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

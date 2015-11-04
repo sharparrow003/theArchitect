@@ -19,10 +19,8 @@ extern "C" FILE *yyin;
 class ast {
 	public:
 		ast();
-		ast(node *);
 		~ast();
 		node *root;
-		
 		node *newval(string);
 		node *newop(node *, string);
 		node *newmath(node *, string);	
@@ -34,32 +32,21 @@ class ast {
 	private:
 		void destroy_tree(node *);
 };
-
-//Michael's Declarations
+//int scope;
 ast myast;
 deque<ast> astlist;
 list<string> varlist;
-//exprhead is being used as a temporary place holder for the root expression in nested parentheticals. i.e. (((x)+x)+x)
-static node * exprhead = 0;
-
-//Lalit's Declarations
+list<string> astPostOrder;
+list<string> IRNodeList;
 static int registerValue = 1;
+list <string> IRList;
 string datatype="i";
-int regVal = 0;
-
-int labelCount = 1;
-
-list <string> labelStack;
-list <string> activityStack;
-
+static node * exprhead = 0;
+void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
+list<string> generateTinyCode();		//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
 int getRegister(string IRReg);					//Calculates the register number from IR Node ***IMPORTANT***
 
-list<string> IRList;
-list<string> IRNodeList;
-list<string> astPostOrder;
-list<string> generateTinyCode();				//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
-void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
-
+int regVal = 0;
 
 void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 %}
@@ -200,6 +187,8 @@ func_body: decl stmt_list
 ;
 stmt_list: stmt stmt_list   
 {
+	//cout << "First index: " << $<ival>1 << endl;
+	//cout << "Second index: " << $<ival>2 << endl;
 	$<ival>$ = $<ival>1;
 }
 | empty
@@ -210,17 +199,13 @@ stmt_list: stmt stmt_list
 stmt: base_stmt 
 {$<ival>$ = $<ival>1;}
 | if_stmt 
-{
-	$<ival>$ = $<ival>1;
-}
+{$<ival>$ = $<ival>1;}
 | for_stmt  
 {$<ival>$ = 0;}
 ;
 
 base_stmt: assign_stmt
-{
-	$<ival>$ = $<ival>1;
-} 
+{$<ival>$ = $<ival>1;} 
 | read_stmt 
 {$<ival>$ = $<ival>1;}
 | write_stmt 
@@ -252,9 +237,6 @@ assign_expr: id ASSMTOP expr
 	temp1 = myast.newval($<sval>1);
 	temp2 = myast.newmath(temp1, ":=");
 	myast.addright(temp2,myast.root);	
-	//cout << "Begin Post Order" << endl;
-	//myast.postorder(temp2);
-	//cout << "End Post Order" << endl;
 	$<nval>$ = temp2;
 }
 //New ASSMTOP head with id as left, expr head as right
@@ -423,44 +405,60 @@ mulop: MULOP
 ;
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
 {
-	node *ifptr = myast.newval("IF");
+	/*
+	//intialize variables to create new IF, COND, and FI nodes to fit in the existing AST structure.
+	ast ifast;
+	ast fiast;
+	ast condast;
+	ifast = ast();
+	fiast = ast();
+	condast = ast();
+	node *ifptr = myast.newval("IF");	
 	node *fiptr = myast.newval("FI");
-	myast.root = 0;
-	node *condptr = $<nval>3;
+	node *condptr = $<nval>1;
 	//insert a new if node right before the statement list we saved	
+	
+	//deque<ast>::iterator it = astlist.begin();
+	//for (it; it!=astlist.end(); it++){
+	//	cout << *((*it).root->value) << endl;
+	//}
+	//cout << *((*it).root->value) << endl;
+	cout << "Size of list after IF: " << $<ival>6 << endl;
 	deque<ast>::iterator it = astlist.begin() + $<ival>6;
-	
-	ast ifast = ast(ifptr);
-	ast fiast = ast(fiptr);
-	ast condast = ast(condptr);
-	
-	astlist.insert(it,condast);
-	it = astlist.begin() + $<ival>6;
-	astlist.insert(it,ifast);
+	ifast.root = ifptr;
+	fiast.root = fiptr;
+	condast.root = condptr;
+	//astlist.insert(it,condast);
+	//astlist.insert(it,ifast);
 	astlist.push_back(fiast);
 	$<ival>$ = $<ival>6;
+	*/ 
 }
 ;
 else_part: ELSE decl stmt_list 
 {	
+	/*
 	ast elseast;
 	elseast = ast();
-	node *elseptr = elseast.newval("ELSE");
-	//cout << "Size of list after ELSE: " << $<ival>3 << endl;
-	deque<ast>::iterator it = astlist.begin() + $<ival>3;
-	//cout << *((*it).root->value) << endl;
-	astlist.insert(it,elseast);
-
+	node *elseptr = myast.newval("ELSE");
+	elseast.root = elseptr;
+	cout << "Size of list after ELSE: " << $<ival>2 << endl;
+	deque<ast>::iterator it = astlist.begin() + $<ival>2;
+	cout << *((*it).root->value) << endl;
+	//astlist.insert(it,elseast);
+	*/
 }
 | empty  
 ;
 cond: expr compop expr  
 {
+	/*
 	//make new head of the conditional statement
-	node *conhead = myast.newmath($<nval>1,$<sval>2);
-	myast.addright(conhead,$<nval>3);
+	node *conhead = myast.newmath($<nval>1,$<sval>2);	
+	//attach second expr as right child
+	myast.addright(conhead, $<nval>3);
 	$<nval>$ = conhead;
-	myast.root = 0;
+	*/
 }
 ;
 
@@ -477,179 +475,134 @@ compop: GREATER
 | GEQUALS  
 {$<sval>$ = ">=";} 
 ;
-init_stmt: assign_expr 
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0;
-}
-| empty   
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0
-}
+init_stmt: assign_expr | empty   
 ;
-incr_stmt: assign_expr   
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0;
-}
-| empty
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0;
-}
+incr_stmt: assign_expr | empty   
 ;
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
-	//insert conditional ast
-	ast tempast = ast($<nval>5);
-	deque<ast>::iterator it = astlist.begin() + $<ival>10;
-	astlist.insert(it, tempast);
-
-	//insert FOR ast marker
-	tempast = ast();
-	node *ptr = tempast.newval("FOR");
-	it = astlist.begin() + $<ival>10;
-	astlist.insert(it, tempast);	
-	
-	//insert optional init ast
-	if ($<nval>3 != 0){
-		tempast = ast($<nval>3);
-		it = astlist.begin() + $<ival>10;
-		astlist.insert(it,tempast);
-	}
-	
-	//insert ROF and increment at the end
-	tempast = ast($<nval>7);
-	astlist.push_back(tempast);
-	tempast = ast();
-	ptr = tempast.newval("ROF");
-	astlist.push_back(tempast);
-		
 }
 ;
 empty:    
 ;
 %%
-
-
-
-ast::ast() {root = 0;}
-ast::ast(node *root){this->root = root;}
-ast::~ast() {}
-
+ast::ast() {
+	root = 0;
+}
+ast::~ast() {
+	if (root != 0){
+		//delete root;
+	}
+}
 void ast::destroy_tree(node *leaf){
-if(leaf != 0){
-destroy_tree(leaf->left);
-destroy_tree(leaf->right);
-if (leaf->value != 0){
-	delete leaf->value;
-	//cout << "Deleted leaf value!" << endl;
-}
-delete leaf;
-//cout << "Deleted whole leaf!" << endl;	
-}
-root = 0;
+	if(leaf != 0){
+		destroy_tree(leaf->left);
+		destroy_tree(leaf->right);
+		if (leaf->value != 0){
+			delete leaf->value;
+			//cout << "Deleted leaf value!" << endl;
+		}
+		delete leaf;
+		//cout << "Deleted whole leaf!" << endl;	
+	}
+	root = 0;
 }
 void ast::destroy_tree(){
-destroy_tree(root);
+	destroy_tree(root);
 }
 void ast::addright(node *head, node *leaf){
-if(leaf != 0 && head != 0){
-if(root == leaf){
-	//If adding root node as left, make new root the head
-	root = head;
-}	
-head->right = leaf;
-}
+	if(leaf != 0 && head != 0){
+		if(root == leaf){
+			//If adding root node as left, make new root the head
+			root = head;
+		}	
+		head->right = leaf;
+	}
 }
 void ast::inorder(node *head){
-if(head != 0){
-inorder(head->left);
-cout << *(head->value) << endl;
-inorder(head->right);
-}
+	if(head != 0){
+		inorder(head->left);
+		cout << *(head->value) << endl;
+		inorder(head->right);
+	}
 }
 void ast::preorder(node *head){
-if(head != 0){
-cout << *(head->value) << endl;
-preorder(head->left);
-preorder(head->right);
-}
+	if(head != 0){
+		cout << *(head->value) << endl;
+		preorder(head->left);
+		preorder(head->right);
+	}
 }
 void ast::postorder(node *head){
-if(head != 0){
-postorder(head->left);
-postorder(head->right);
-cout << *(head->value) << endl;
-}
+	if(head != 0){
+		postorder(head->left);
+		postorder(head->right);
+		cout << *(head->value) << endl;
+	}
 }
 //node *ast::new(node *value, string operation)
 node *ast::newval(string key){
-node *head = new node();
-if (root == 0){root = head;}
-head->value = new string(key);
-head->left = 0;
-head->right = 0;
-return head;
+	node *head = new node();
+	if (root == 0){root = head;}
+	head->value = new string(key);
+	head->left = 0;
+	head->right = 0;
+	return head;
 }
 node *ast::newop(node *value, string operation){
-node *head = new node();
-if (root == value){root = head;}
-head->value = new string(operation);
-head->left = 0;
-head->right = value;
-return head;	
+	node *head = new node();
+	if (root == value){root = head;}
+	head->value = new string(operation);
+	head->left = 0;
+	head->right = value;
+	return head;	
 }
 node *ast::newmath(node *value, string operation){
-node *head = new node();
-if (root == value){root = head;}
-head->value = new string(operation);
-head->left = value;
-//cout << "HEAD: " << *(head->value) << "Left " << *(head->left->value) << endl;
-head->right = 0;
-return head;
+	node *head = new node();
+	if (root == value){root = head;}
+	head->value = new string(operation);
+	head->left = value;
+	//cout << "HEAD: " << *(head->value) << "Left " << *(head->left->value) << endl;
+	head->right = 0;
+	return head;
 }
 
-
+	
 void printList(ast myast) {
-while (!astlist.empty()) {
- myast.postorder((astlist.front()).root);
- astlist.pop_front();
-}
+	while (!astlist.empty()) {
+		 myast.postorder((astlist.front()).root);
+		 astlist.pop_front();
+	}
 }
 
 void generateIRPostOrderList(node *head) {
-if(head != 0){
-generateIRPostOrderList(head->left);
-generateIRPostOrderList(head->right);
-astPostOrder.push_back(*(head->value));
-}
+	if(head != 0){
+		generateIRPostOrderList(head->left);
+		generateIRPostOrderList(head->right);
+		astPostOrder.push_back(*(head->value));
+	}
 }
 
 void checkDatatype(string var) {
-list <string> varlistTemp = varlist;
-string type;
-string varTemp;
+	list <string> varlistTemp = varlist;
+	string type;
+	string varTemp;
+	
+	while(!varlistTemp.empty()) {
+		istringstream iss(varlistTemp.front());
+		iss >> type;
+		iss >> varTemp;
 
-while(!varlistTemp.empty()) {
-istringstream iss(varlistTemp.front());
-iss >> type;
-iss >> varTemp;
-//cout<<varTemp<<endl;
-if(varTemp == var) {
-	if(type == "INT") {
-		datatype = "i";
+		if(varTemp == var) {
+			if(type == "INT") {
+				datatype = "i";
+			}
+			else {
+				datatype = "f";
+			}
+		}
+		varlistTemp.pop_front();
 	}
-	else if(type == "FLOAT") {
-		datatype = "f";
-	}
-	else {
-		datatype = "s";
-	}
-}
-varlistTemp.pop_front();
-}
 }
 
 void generateIRList() {
@@ -659,11 +612,8 @@ void generateIRList() {
 	string op2;
 	string result;
 
-	string regStore,regStore1,regStore2;
+	string regStore;
 	string IRDisplay;
-	string label, templabel1, templabel2;
-	string tempActivity;
-
 	ostringstream convert;
 	while (!astlist.empty()) {
 		astNode = astlist.front();
@@ -684,7 +634,6 @@ void generateIRList() {
 		*/
 		
 		if(astPostOrder.front() == ":=") {
-			convert.str("");
 			convert << registerValue;
 			regStore = "$T"+convert.str();
 
@@ -720,7 +669,6 @@ void generateIRList() {
 			convert.str("");
 		}
 		else if (astPostOrder.front()[0] == '+') {
-			convert.str("");
 			convert << registerValue;
 			regStore = "$T"+convert.str();
 
@@ -751,7 +699,6 @@ void generateIRList() {
 		}
 
 		else if (astPostOrder.front()[0] == '-') {
-			convert.str("");
 			convert << registerValue;
 			regStore = "$T"+convert.str();
 
@@ -782,7 +729,6 @@ void generateIRList() {
 		}
 		
 		else if (astPostOrder.front()[0] == '*') {
-			convert.str("");
 			convert << registerValue;
 			regStore = "$T"+convert.str();
 
@@ -813,7 +759,6 @@ void generateIRList() {
 		}
 	
 		else if (astPostOrder.front()[0] == '/') {
-			convert.str("");
 			convert << registerValue;
 			regStore = "$T"+convert.str();
 
@@ -841,384 +786,8 @@ void generateIRList() {
 			temp.push_back(regStore);
 			registerValue = registerValue + 1;
 			convert.str("");
-		}
+		}		
 
-		else if(astPostOrder.front() == "IF") {
-			activityStack.push_front("IF");
-
-			//Else label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-			//Exit label
-
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-		}
-		else if(astPostOrder.front() == "ELSE") {
-			activityStack.push_front("ELSE");
-		
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.pop_front();
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-			IRDisplay = "LABEL "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-			
-			labelStack.push_front(templabel1);
-		}
-		else if(astPostOrder.front() == "FI") {
-			tempActivity = activityStack.front();
-			activityStack.pop_front();
-		
-			if(tempActivity == "IF") {
-				//IF -- FI
-				
-				templabel1 = labelStack.front();
-				labelStack.pop_front();
-				IRDisplay = "JUMP "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-
-				templabel2 = labelStack.front();
-				labelStack.pop_front();				
-				IRDisplay = "LABEL "+templabel2;
-				IRNodeList.push_back(IRDisplay);
-
-				IRDisplay = "LABEL "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-			
-				//labelStack.push_front(templabel1);
-			}
-			else {
-				//IF -- ELSE -- FI
-				
-				templabel1 = labelStack.front();
-				labelStack.pop_front();
-				//templabel1 = labelStack.front();
-				//labelStack.pop_front();
-				IRDisplay = "JUMP "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-				IRDisplay = "LABEL "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-			
-				//labelStack.push_front(templabel1);
-			}
-		}
-
-		else if (astPostOrder.front() == "FOR") {
-			//Out label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-			//For label
-
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-		}
-
-		else if (astPostOrder.front() == "ROF") {
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.pop_front();
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-			IRDisplay = "LABEL "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-			
-			//labelStack.push_front(templabel1);
-		}
-		/*		
-		else if (astPostOrder.front() == "IF") {
-			//Else label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-			//Exit label
-
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-		}
-
-		else if (astPostOrder.front() == "ELSE") {
-			templabel2 = labelStack.front();
-			labelStack.pop_front();
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-			IRDisplay = "LABEL "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-			
-			labelStack.push_front(templabel1);
-		}
-
-		else if (astPostOrder.front() == "FI") {
-			templabel2 = labelStack.front();
-			labelStack.pop_front();
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-			IRDisplay = "LABEL "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-			
-			labelStack.push_front(templabel1);
-		}	
-		
-		
-		else if (astPostOrder.front() == "FOR") {
-			//For label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-
-		}
-		
-		else if (astPostOrder.front() == "ROF") {
-			templabel1 = labelStack.front();
-			
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-		}*/
-
-		
-		else if (astPostOrder.front() == "<") {
-			op2 = temp.back();
-			temp.pop_back();
-			op1 = temp.back();
-			temp.pop_back();
-
-			convert.str("");
-			convert << registerValue;
-			regStore1 = "$T"+convert.str();
-
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
-			
-	
-			registerValue = registerValue + 1;
-			convert.str("");
-
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
-
-			registerValue = registerValue + 1;
-
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
-
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.push_front(templabel1);
-			//labelStack.push_front(templabel2);
-
-			IRDisplay = "GE "+regStore2+" "+regStore1+" "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-		}
-
-		else if (astPostOrder.front() == "<=") {
-			op2 = temp.back();
-			temp.pop_back();
-			op1 = temp.back();
-			temp.pop_back();
-
-			convert.str("");
-			convert << registerValue;
-			regStore1 = "$T"+convert.str();
-
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
-			
-	
-			registerValue = registerValue + 1;
-			convert.str("");
-
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
-
-			registerValue = registerValue + 1;
-
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
-
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.push_front(templabel1);
-			//labelStack.push_front(templabel2);
-
-			IRDisplay = "GT "+regStore2+" "+regStore1+" "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-		}
-
-		else if (astPostOrder.front() == ">") {
-			op2 = temp.back();
-			temp.pop_back();
-			op1 = temp.back();
-			temp.pop_back();
-
-			convert.str("");
-			convert << registerValue;
-			regStore1 = "$T"+convert.str();
-
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
-			
-	
-			registerValue = registerValue + 1;
-			convert.str("");
-
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
-
-			registerValue = registerValue + 1;
-
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
-
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.push_front(templabel1);
-			//labelStack.push_front(templabel2);
-
-			IRDisplay = "LE "+regStore2+" "+regStore1+" "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-		}
-
-		else if (astPostOrder.front() == ">=") {
-			op2 = temp.back();
-			temp.pop_back();
-			op1 = temp.back();
-			temp.pop_back();
-
-			convert.str("");
-			convert << registerValue;
-			regStore1 = "$T"+convert.str();
-
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
-			
-	
-			registerValue = registerValue + 1;
-			convert.str("");
-
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
-
-			registerValue = registerValue + 1;
-
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
-
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.push_front(templabel1);
-			//labelStack.push_front(templabel2);
-
-			IRDisplay = "LT "+regStore2+" "+regStore1+" "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-		}
-
-		else if (astPostOrder.front() == "=") {
-			op2 = temp.back();
-			temp.pop_back();
-			op1 = temp.back();
-			temp.pop_back();
-
-			convert.str("");
-			convert << registerValue;
-			regStore1 = "$T"+convert.str();
-
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
-			
-	
-			registerValue = registerValue + 1;
-			convert.str("");
-
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
-
-			registerValue = registerValue + 1;
-
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
-
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.push_front(templabel1);
-			//labelStack.push_front(templabel2);
-
-			IRDisplay = "NE "+regStore2+" "+regStore1+" "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-		}
-
-		else if (astPostOrder.front() == "!=") {
-			op2 = temp.back();
-			temp.pop_back();
-			op1 = temp.back();
-			temp.pop_back();
-
-			convert.str("");
-			convert << registerValue;
-			regStore1 = "$T"+convert.str();
-
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
-			
-	
-			registerValue = registerValue + 1;
-			convert.str("");
-
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
-
-			registerValue = registerValue + 1;
-
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
-
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.push_front(templabel1);
-			//labelStack.push_front(templabel2);
-
-			IRDisplay = "EQ "+regStore2+" "+regStore1+" "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-		}
-		
 		else if(astPostOrder.front() == "READ") {
 
 			op1 = temp.back();
@@ -1251,12 +820,8 @@ void generateIRList() {
 				IRDisplay = "WRITEI "+op1;
 				IRNodeList.push_back(IRDisplay);
 			}
-			else if(datatype == "f") {
-				IRDisplay = "WRITEF "+op1;
-				IRNodeList.push_back(IRDisplay);
-			}
 			else {
-				IRDisplay = "WRITES "+op1;
+				IRDisplay = "WRITEF "+op1;
 				IRNodeList.push_back(IRDisplay);
 			}
 			temp.pop_back();
@@ -1347,7 +912,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "addi "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1360,7 +924,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}
@@ -1396,7 +959,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "addr "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1409,7 +971,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}
@@ -1445,7 +1006,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "subi "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1458,7 +1018,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}
@@ -1494,7 +1053,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "subr "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1507,7 +1065,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}
@@ -1544,7 +1101,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "muli "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1557,7 +1113,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}
@@ -1594,7 +1149,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "mulr "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1607,7 +1161,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}
@@ -1643,7 +1196,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "divi "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1656,7 +1208,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}		
@@ -1693,7 +1244,6 @@ list<string> generateTinyCode() {
 				convert << regVal1;
 				tinyStmt = "divr "+op2+" r"+convert.str();
 				tinyCode.push_back(tinyStmt);
-				
 			}
 
 			else {
@@ -1706,7 +1256,6 @@ list<string> generateTinyCode() {
 				convert << regVal2;
 				tinyStmt = tinyStmt+" r"+convert.str()+" ";
 				tinyCode.push_back(tinyStmt);
-				
 			}			
 					
 		}	
@@ -1723,7 +1272,6 @@ list<string> generateTinyCode() {
 				regVal1 = getRegister(op1);
 				convert << regVal1;
 				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-				
 			}
 			else {
 				tinyStmt = tinyStmt+op1+" ";
@@ -1734,12 +1282,11 @@ list<string> generateTinyCode() {
 				regVal2 = getRegister(result);
 				convert << regVal2;
 				tinyStmt = tinyStmt+"r"+convert.str();
-				
 			}
 			else {
 				tinyStmt = tinyStmt+result+" ";
-				
 			}
+
 			//regVal = regVal + 1;
 			tinyCode.push_back(tinyStmt);	
 				
@@ -1757,7 +1304,6 @@ list<string> generateTinyCode() {
 				regVal1 = getRegister(op1);
 				convert << regVal1;
 				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-				
 			}
 			else {
 				tinyStmt = tinyStmt+op1+" ";
@@ -1768,11 +1314,9 @@ list<string> generateTinyCode() {
 				regVal2 = getRegister(result);
 				convert << regVal2;
 				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-				
 			}
 			else {
 				tinyStmt = tinyStmt+result+" ";
-				
 			}
 
 			//regVal = regVal + 1;
@@ -1780,209 +1324,35 @@ list<string> generateTinyCode() {
 				
 			
 		}
-		//GT op1 op2 label
+		//GT op1 op2 Label
+		/*
 		else if (op == "GT") {
 			iss >> op1;
 			iss >> op2;
-			iss >> result;
-			ostringstream convert;
-			tinyStmt = "cmpi ";
+			iss >> label;
+
 			
-			if(op1[0] == '$') {
-				regVal1 = getRegister(op1);
-				convert.str("");
-				convert << regVal1;
-				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op1+" ";
-			}
-			if(op2[0] == '$') {
-				regVal2 = getRegister(op2);
-				convert.str("");
-				convert << regVal2;
-				tinyStmt = tinyStmt+"r"+convert.str();
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op2;
-			}
-			tinyCode.push_back(tinyStmt);
-			tinyStmt = "jgt "+result;
-			tinyCode.push_back(tinyStmt);			
-					
 		}
-		//GE op1 op2 label
-		else if (op == "GE") {
-			iss >> op1;
-			iss >> op2;
-			iss >> result;
-			ostringstream convert;
-			tinyStmt = "cmpi ";
-			
-			if(op1[0] == '$') {
-				regVal1 = getRegister(op1);
-				convert.str("");
-				convert << regVal1;
-				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op1+" ";
-			}
-			if(op2[0] == '$') {
-				regVal2 = getRegister(op2);
-				convert.str("");
-				convert << regVal2;
-				tinyStmt = tinyStmt+"r"+convert.str();
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op2;
-			}
-			tinyCode.push_back(tinyStmt);
-			tinyStmt = "jge "+result;
-			tinyCode.push_back(tinyStmt);			
-					
-		}
-		//LT op1 op2 label
-		else if (op == "LT") {
-			iss >> op1;
-			iss >> op2;
-			iss >> result;
-			ostringstream convert;
-			tinyStmt = "cmpi ";
-			
-			if(op1[0] == '$') {
-				regVal1 = getRegister(op1);
-				convert.str("");
-				convert << regVal1;
-				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op1+" ";
-			}
-			if(op2[0] == '$') {
-				regVal2 = getRegister(op2);
-				convert.str("");
-				convert << regVal2;
-				tinyStmt = tinyStmt+"r"+convert.str();
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op2;
-			}
-			tinyCode.push_back(tinyStmt);
-			tinyStmt = "jlt "+result;
-			tinyCode.push_back(tinyStmt);			
-					
-		}
-		//LE op1 op2 label
-		else if (op == "LE") {
-			iss >> op1;
-			iss >> op2;
-			iss >> result;
-			ostringstream convert;
-			tinyStmt = "cmpi ";
-			
-			if(op1[0] == '$') {
-				regVal1 = getRegister(op1);
-				convert.str("");
-				convert << regVal1;
-				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op1+" ";
-			}
-			if(op2[0] == '$') {
-				regVal2 = getRegister(op2);
-				convert.str("");
-				convert << regVal2;
-				tinyStmt = tinyStmt+"r"+convert.str();
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op2;
-			}
-			tinyCode.push_back(tinyStmt);
-			tinyStmt = "jle "+result;
-			tinyCode.push_back(tinyStmt);			
-					
-		}
-		//NE op1 op2 label
-		else if (op == "NE") {
-			iss >> op1;
-			iss >> op2;
-			iss >> result;
-			ostringstream convert;
-			tinyStmt = "cmpi ";
-			
-			if(op1[0] == '$') {
-				regVal1 = getRegister(op1);
-				convert.str("");
-				convert << regVal1;
-				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op1+" ";
-			}
-			if(op2[0] == '$') {
-				regVal2 = getRegister(op2);
-				convert.str("");
-				convert << regVal2;
-				tinyStmt = tinyStmt+"r"+convert.str();
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op2;
-			}
-			tinyCode.push_back(tinyStmt);
-			tinyStmt = "jne "+result;
-			tinyCode.push_back(tinyStmt);			
-					
-		}
-		//EQ op1 op2 label
-		else if (op == "EQ") {
-			iss >> op1;
-			iss >> op2;
-			iss >> result;
-			ostringstream convert;
-			tinyStmt = "cmpi ";
-			
-			if(op1[0] == '$') {
-				regVal1 = getRegister(op1);
-				convert.str("");
-				convert << regVal1;
-				tinyStmt = tinyStmt+"r"+convert.str()+" ";
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op1+" ";
-			}
-			if(op2[0] == '$') {
-				regVal2 = getRegister(op2);
-				convert.str("");
-				convert << regVal2;
-				tinyStmt = tinyStmt+"r"+convert.str();
-			}
-			else {
-				tinyStmt = tinyStmt+" "+op2;
-			}
-			tinyCode.push_back(tinyStmt);
-			tinyStmt = "jeq "+result;
-			tinyCode.push_back(tinyStmt);			
-					
-		}
-		//JUMP label
-		else if (op == "JUMP") {
-			iss >> result;
-			
-			
-			tinyStmt = "jmp "+result;
-			tinyCode.push_back(tinyStmt);			
-					
-		}
-		//LABEL label
+		*/
+		//GE
+
+		//LT
+
+		//LE
+
+		//NE
+
+		//EQ
+
+		//JUMP
+
+		//LABEL
 		else if (op == "LABEL") {
 			iss >> result;
 
 			tinyStmt = "label "+result;
 			tinyCode.push_back(tinyStmt);
-		}		
-
+		}
 		//READI
 		else if (op == "READI") {
 			iss >> result;
@@ -2006,17 +1376,8 @@ list<string> generateTinyCode() {
 		}
 		//WRITEF
 		else if (op == "WRITEF") {
-			iss >> result;
-	
+			iss >> result;	
 			tinyStmt = "sys writer "+result;
-			tinyCode.push_back(tinyStmt);
-		}
-
-		//WRITES
-		else if (op == "WRITES") {
-			iss >> result;
-
-			tinyStmt = "sys writes "+result;
 			tinyCode.push_back(tinyStmt);
 		}
 
@@ -2026,67 +1387,64 @@ list<string> generateTinyCode() {
 	tinyCode.push_back("sys halt");
 	return tinyCode;
 }
-
-int main(int argc, char *argv[]) {
-if (argc != 2){
-printf("Error! Usage: Micro <filename>");
-}
-else{
-FILE *myfile = fopen(argv[1], "r");	
-if (!myfile) {
-	cout << "File could not be opened" << endl;
-	return -1;
-}
-yyin = myfile;
-myast = ast();
-do {
-	yyparse();
-} while (!feof(yyin));
-
-//Access astlist here like any linked list 
-
-/*while (!astlist.empty()){
-	ast tempast = astlist.front();
-	cout << "New tree marker" << endl;
-	myast.postorder(tempast.root);	
-	astlist.pop_front();
-}*/
-//Access example below
-//cout << "Front of the list!" << endl;
-//myast.inorder((astlist.front()).root);
-//cout << "Back of the list!" << endl;
-//myast.inorder((astlist.back()).root);
-/*
-
-for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
-//NOTE: strings in this list are actual strings not pointers
-//This is example code for iterating through the list
-cout << i<<" "<<*iterator << endl;
-i = i + 1;
-}
-*/
-//LALIT UNCOMMENT THIS PART STARTING HERE<<<<<<<<<<<<<<<
 	
-generateIRList();
-list<string> tinyCode = generateTinyCode();
+int main(int argc, char *argv[]) {
+  	if (argc != 2){
+    		printf("Error! Usage: Micro <filename>");
+  	}
+  	else{
+		FILE *myfile = fopen(argv[1], "r");	
+    		if (!myfile) {
+      			cout << "File could not be opened" << endl;
+      			return -1;
+    		}
+    		yyin = myfile;
+    		myast = ast();
+    		do {
+      			yyparse();
+    		} while (!feof(yyin));
+    	//Access astlist here like any linked list 
+   		/*
+		while (!astlist.empty()){
+			ast tempast = astlist.front();
+			node *tempnode = tempast.root;
+			cout << *(tempnode->value) << endl;
+			astlist.pop_front();
+		}
+		*/ 
+    	//Access example below
+    	//cout << "Front of the list!" << endl;
+    	//myast.inorder((astlist.front()).root);
+    	//cout << "Back of the list!" << endl;
+    	//myast.inorder((astlist.back()).root);
+    
+    	/*
+    	for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
+		//NOTE: strings in this list are actual strings not pointers
+        	//This is example code for iterating through the list
+		cout << i<<" "<<*iterator << endl;
+		i = i + 1;
+    	}*/
+		generateIRList();
+  		list<string> tinyCode = generateTinyCode();
 
-list<string> varlistTemp = varlist;
-list<string> varlistLoad;
-string var;
-string varTemp;
+  		list<string> varlistTemp = varlist;
+		list<string> varlistLoad;
+		string var;
+		string varTemp;
 
-while(!varlistTemp.empty()) {
-	//NOTE: strings in this list are actual strings not pointers
-	//This is example code for iterating through the list
-	//cout <<*iterator << endl;
-	//i = i + 1;
-	istringstream iss(varlistTemp.front());
-	var = "";
-	iss>>var;
-	var = "";
-	iss>>var;
-	varTemp = "var "+var;
-	varlistLoad.push_front(varTemp);
+		while(!varlistTemp.empty()) {
+			//NOTE: strings in this list are actual strings not pointers
+			//This is example code for iterating through the list
+			//cout <<*iterator << endl;
+			//i = i + 1;
+			istringstream iss(varlistTemp.front());
+			var = "";
+			iss>>var;
+			var = "";
+			iss>>var;
+			varTemp = "var "+var;
+			varlistLoad.push_front(varTemp);
 			varlistTemp.pop_front();
     		}
 
@@ -2099,6 +1457,5 @@ while(!varlistTemp.empty()) {
 			cout<<tinyCode.front()<<endl;
 			tinyCode.pop_front();
 		}
-	}//END OF ELSE STATEMENT
-}	
-
+	}//END OF ELSE STATEMENT	
+}

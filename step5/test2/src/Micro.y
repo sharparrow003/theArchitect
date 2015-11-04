@@ -19,10 +19,8 @@ extern "C" FILE *yyin;
 class ast {
 	public:
 		ast();
-		ast(node *);
 		~ast();
 		node *root;
-		
 		node *newval(string);
 		node *newop(node *, string);
 		node *newmath(node *, string);	
@@ -34,32 +32,24 @@ class ast {
 	private:
 		void destroy_tree(node *);
 };
-
-//Michael's Declarations
+//int scope;
 ast myast;
 deque<ast> astlist;
 list<string> varlist;
-//exprhead is being used as a temporary place holder for the root expression in nested parentheticals. i.e. (((x)+x)+x)
-static node * exprhead = 0;
-
-//Lalit's Declarations
+list<string> astPostOrder;
+list<string> IRNodeList;
 static int registerValue = 1;
+list <string> IRList;
 string datatype="i";
-int regVal = 0;
+static node * exprhead = 0;
+void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
+list<string> generateTinyCode();		//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
+int getRegister(string IRReg);					//Calculates the register number from IR Node ***IMPORTANT***
 
+int regVal = 0;
 int labelCount = 1;
 
 list <string> labelStack;
-list <string> activityStack;
-
-int getRegister(string IRReg);					//Calculates the register number from IR Node ***IMPORTANT***
-
-list<string> IRList;
-list<string> IRNodeList;
-list<string> astPostOrder;
-list<string> generateTinyCode();				//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
-void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
-
 
 void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 %}
@@ -238,6 +228,7 @@ assign_stmt: assign_expr SCOLONOP
 	//cout << "Started post order!" << endl;
 	//myast.postorder($<nval>1);
 	//cout << "HEAD-> " << *(myast.root->value) << endl;
+	node *temp1;
 	astlist.push_back(myast);
 	//return pointer to statement's place in the list.
 	myast = ast();
@@ -423,17 +414,35 @@ mulop: MULOP
 ;
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
 {
-	node *ifptr = myast.newval("IF");
-	node *fiptr = myast.newval("FI");
-	myast.root = 0;
+	//intialize variables to create new IF, COND, and FI nodes to fit in the existing AST structure.
+	ast ifast;
+	ast fiast;
+	ast condast;
+	ifast = ast();
+	fiast = ast();
+	condast = ast();
+	//THIS HAS TO BE MESSY BECAUSE OF HOW I DID STEP 3
+	//I AM PAYING FOR MY PAST MISTAKES
+	
+	//node *ifptr = myast.newval("IF");
+	node *ifptr = new node();
+	ifptr->value = new string("IF");
+	ifptr->left = 0;
+	ifptr->right = 0;
+	//node *fiptr = myast.newval("FI");
+	node *fiptr = new node();
+	fiptr->value = new string("FI");
+	fiptr->left = 0;
+	fiptr->right = 0;
+	
 	node *condptr = $<nval>3;
 	//insert a new if node right before the statement list we saved	
+	
+	//cout << "Size of list after IF: " << $<ival>6 << endl;
 	deque<ast>::iterator it = astlist.begin() + $<ival>6;
-	
-	ast ifast = ast(ifptr);
-	ast fiast = ast(fiptr);
-	ast condast = ast(condptr);
-	
+	ifast.root = ifptr;
+	fiast.root = fiptr;
+	condast.root = condptr;
 	astlist.insert(it,condast);
 	it = astlist.begin() + $<ival>6;
 	astlist.insert(it,ifast);
@@ -445,7 +454,11 @@ else_part: ELSE decl stmt_list
 {	
 	ast elseast;
 	elseast = ast();
-	node *elseptr = elseast.newval("ELSE");
+	node *elseptr = new node();
+	elseptr->value = new string("ELSE");
+	elseptr->left = 0;
+	elseptr->right = 0;
+	elseast.root = elseptr;
 	//cout << "Size of list after ELSE: " << $<ival>3 << endl;
 	deque<ast>::iterator it = astlist.begin() + $<ival>3;
 	//cout << *((*it).root->value) << endl;
@@ -457,8 +470,12 @@ else_part: ELSE decl stmt_list
 cond: expr compop expr  
 {
 	//make new head of the conditional statement
-	node *conhead = myast.newmath($<nval>1,$<sval>2);
-	myast.addright(conhead,$<nval>3);
+	//node *conhead = myast.newmath($<nval>1,$<sval>2);	
+	//node *temp = myast.addright(conhead,$<nval>3);
+	node *conhead = new node();
+	conhead->value = new string($<sval>2);
+	conhead->left = $<nval>1;
+	conhead->right = $<nval>3;
 	$<nval>$ = conhead;
 	myast.root = 0;
 }
@@ -477,179 +494,136 @@ compop: GREATER
 | GEQUALS  
 {$<sval>$ = ">=";} 
 ;
-init_stmt: assign_expr 
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0;
-}
-| empty   
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0
-}
+init_stmt: assign_expr | empty   
+{myast.root = 0;}
 ;
-incr_stmt: assign_expr   
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0;
-}
-| empty
-{
-	$<nval>$ = $<nval>1;
-	myast.root = 0;
-}
+incr_stmt: assign_expr | empty   
+{myast.root = 0;}
 ;
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
-	//insert conditional ast
-	ast tempast = ast($<nval>5);
-	deque<ast>::iterator it = astlist.begin() + $<ival>10;
-	astlist.insert(it, tempast);
-
-	//insert FOR ast marker
-	tempast = ast();
-	node *ptr = tempast.newval("FOR");
-	it = astlist.begin() + $<ival>10;
-	astlist.insert(it, tempast);	
-	
-	//insert optional init ast
-	if ($<nval>3 != 0){
-		tempast = ast($<nval>3);
-		it = astlist.begin() + $<ival>10;
-		astlist.insert(it,tempast);
-	}
-	
-	//insert ROF and increment at the end
-	tempast = ast($<nval>7);
-	astlist.push_back(tempast);
-	tempast = ast();
-	ptr = tempast.newval("ROF");
-	astlist.push_back(tempast);
-		
 }
 ;
 empty:    
 ;
 %%
-
-
-
-ast::ast() {root = 0;}
-ast::ast(node *root){this->root = root;}
-ast::~ast() {}
-
+ast::ast() {
+	root = 0;
+}
+ast::~ast() {
+	if (root != 0){
+		//delete root;
+	}
+}
 void ast::destroy_tree(node *leaf){
-if(leaf != 0){
-destroy_tree(leaf->left);
-destroy_tree(leaf->right);
-if (leaf->value != 0){
-	delete leaf->value;
-	//cout << "Deleted leaf value!" << endl;
-}
-delete leaf;
-//cout << "Deleted whole leaf!" << endl;	
-}
-root = 0;
+	if(leaf != 0){
+		destroy_tree(leaf->left);
+		destroy_tree(leaf->right);
+		if (leaf->value != 0){
+			delete leaf->value;
+			//cout << "Deleted leaf value!" << endl;
+		}
+		delete leaf;
+		//cout << "Deleted whole leaf!" << endl;	
+	}
+	root = 0;
 }
 void ast::destroy_tree(){
-destroy_tree(root);
+	destroy_tree(root);
 }
 void ast::addright(node *head, node *leaf){
-if(leaf != 0 && head != 0){
-if(root == leaf){
-	//If adding root node as left, make new root the head
-	root = head;
-}	
-head->right = leaf;
-}
+	if(leaf != 0 && head != 0){
+		if(root == leaf){
+			//If adding root node as left, make new root the head
+			root = head;
+		}	
+		head->right = leaf;
+	}
 }
 void ast::inorder(node *head){
-if(head != 0){
-inorder(head->left);
-cout << *(head->value) << endl;
-inorder(head->right);
-}
+	if(head != 0){
+		inorder(head->left);
+		cout << *(head->value) << endl;
+		inorder(head->right);
+	}
 }
 void ast::preorder(node *head){
-if(head != 0){
-cout << *(head->value) << endl;
-preorder(head->left);
-preorder(head->right);
-}
+	if(head != 0){
+		cout << *(head->value) << endl;
+		preorder(head->left);
+		preorder(head->right);
+	}
 }
 void ast::postorder(node *head){
-if(head != 0){
-postorder(head->left);
-postorder(head->right);
-cout << *(head->value) << endl;
-}
+	if(head != 0){
+		postorder(head->left);
+		postorder(head->right);
+		cout << *(head->value) << endl;
+	}
 }
 //node *ast::new(node *value, string operation)
 node *ast::newval(string key){
-node *head = new node();
-if (root == 0){root = head;}
-head->value = new string(key);
-head->left = 0;
-head->right = 0;
-return head;
+	node *head = new node();
+	if (root == 0){root = head;}
+	head->value = new string(key);
+	head->left = 0;
+	head->right = 0;
+	return head;
 }
 node *ast::newop(node *value, string operation){
-node *head = new node();
-if (root == value){root = head;}
-head->value = new string(operation);
-head->left = 0;
-head->right = value;
-return head;	
+	node *head = new node();
+	if (root == value){root = head;}
+	head->value = new string(operation);
+	head->left = 0;
+	head->right = value;
+	return head;	
 }
 node *ast::newmath(node *value, string operation){
-node *head = new node();
-if (root == value){root = head;}
-head->value = new string(operation);
-head->left = value;
-//cout << "HEAD: " << *(head->value) << "Left " << *(head->left->value) << endl;
-head->right = 0;
-return head;
+	node *head = new node();
+	if (root == value){root = head;}
+	head->value = new string(operation);
+	head->left = value;
+	//cout << "HEAD: " << *(head->value) << "Left " << *(head->left->value) << endl;
+	head->right = 0;
+	return head;
 }
 
-
+	
 void printList(ast myast) {
-while (!astlist.empty()) {
- myast.postorder((astlist.front()).root);
- astlist.pop_front();
-}
+	while (!astlist.empty()) {
+		 myast.postorder((astlist.front()).root);
+		 astlist.pop_front();
+	}
 }
 
 void generateIRPostOrderList(node *head) {
-if(head != 0){
-generateIRPostOrderList(head->left);
-generateIRPostOrderList(head->right);
-astPostOrder.push_back(*(head->value));
-}
+	if(head != 0){
+		generateIRPostOrderList(head->left);
+		generateIRPostOrderList(head->right);
+		astPostOrder.push_back(*(head->value));
+	}
 }
 
 void checkDatatype(string var) {
-list <string> varlistTemp = varlist;
-string type;
-string varTemp;
+	list <string> varlistTemp = varlist;
+	string type;
+	string varTemp;
+	
+	while(!varlistTemp.empty()) {
+		istringstream iss(varlistTemp.front());
+		iss >> type;
+		iss >> varTemp;
 
-while(!varlistTemp.empty()) {
-istringstream iss(varlistTemp.front());
-iss >> type;
-iss >> varTemp;
-//cout<<varTemp<<endl;
-if(varTemp == var) {
-	if(type == "INT") {
-		datatype = "i";
+		if(varTemp == var) {
+			if(type == "INT") {
+				datatype = "i";
+			}
+			else {
+				datatype = "f";
+			}
+		}
+		varlistTemp.pop_front();
 	}
-	else if(type == "FLOAT") {
-		datatype = "f";
-	}
-	else {
-		datatype = "s";
-	}
-}
-varlistTemp.pop_front();
-}
 }
 
 void generateIRList() {
@@ -662,7 +636,6 @@ void generateIRList() {
 	string regStore,regStore1,regStore2;
 	string IRDisplay;
 	string label, templabel1, templabel2;
-	string tempActivity;
 
 	ostringstream convert;
 	while (!astlist.empty()) {
@@ -842,109 +815,8 @@ void generateIRList() {
 			registerValue = registerValue + 1;
 			convert.str("");
 		}
-
-		else if(astPostOrder.front() == "IF") {
-			activityStack.push_front("IF");
-
-			//Else label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-			//Exit label
-
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-		}
-		else if(astPostOrder.front() == "ELSE") {
-			activityStack.push_front("ELSE");
 		
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.pop_front();
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-			IRDisplay = "LABEL "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-			
-			labelStack.push_front(templabel1);
-		}
-		else if(astPostOrder.front() == "FI") {
-			tempActivity = activityStack.front();
-			activityStack.pop_front();
 		
-			if(tempActivity == "IF") {
-				//IF -- FI
-				
-				templabel1 = labelStack.front();
-				labelStack.pop_front();
-				IRDisplay = "JUMP "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-
-				templabel2 = labelStack.front();
-				labelStack.pop_front();				
-				IRDisplay = "LABEL "+templabel2;
-				IRNodeList.push_back(IRDisplay);
-
-				IRDisplay = "LABEL "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-			
-				//labelStack.push_front(templabel1);
-			}
-			else {
-				//IF -- ELSE -- FI
-				
-				templabel1 = labelStack.front();
-				labelStack.pop_front();
-				//templabel1 = labelStack.front();
-				//labelStack.pop_front();
-				IRDisplay = "JUMP "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-				IRDisplay = "LABEL "+templabel1;
-				IRNodeList.push_back(IRDisplay);
-			
-				//labelStack.push_front(templabel1);
-			}
-		}
-
-		else if (astPostOrder.front() == "FOR") {
-			//Out label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-			//For label
-
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-		}
-
-		else if (astPostOrder.front() == "ROF") {
-			templabel1 = labelStack.front();
-			labelStack.pop_front();
-			templabel2 = labelStack.front();
-			labelStack.pop_front();
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-			IRDisplay = "LABEL "+templabel2;
-			IRNodeList.push_back(IRDisplay);
-			
-			//labelStack.push_front(templabel1);
-		}
-		/*		
 		else if (astPostOrder.front() == "IF") {
 			//Else label
 			convert.str("");
@@ -989,26 +861,6 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 		}	
 		
-		
-		else if (astPostOrder.front() == "FOR") {
-			//For label
-			convert.str("");
-			convert << labelCount;
-			label = "label"+convert.str();
-
-			labelStack.push_front(label);
-			labelCount++;
-
-		}
-		
-		else if (astPostOrder.front() == "ROF") {
-			templabel1 = labelStack.front();
-			
-			IRDisplay = "JUMP "+templabel1;
-			IRNodeList.push_back(IRDisplay);
-		}*/
-
-		
 		else if (astPostOrder.front() == "<") {
 			op2 = temp.back();
 			temp.pop_back();
@@ -1040,7 +892,7 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 			//labelStack.push_front(templabel2);
 
-			IRDisplay = "GE "+regStore2+" "+regStore1+" "+templabel2;
+			IRDisplay = "GE "+regStore1+" "+regStore2+" "+templabel2;
 			IRNodeList.push_back(IRDisplay);
 		}
 
@@ -1075,7 +927,7 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 			//labelStack.push_front(templabel2);
 
-			IRDisplay = "GT "+regStore2+" "+regStore1+" "+templabel2;
+			IRDisplay = "GT "+regStore1+" "+regStore2+" "+templabel2;
 			IRNodeList.push_back(IRDisplay);
 		}
 
@@ -1110,7 +962,7 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 			//labelStack.push_front(templabel2);
 
-			IRDisplay = "LE "+regStore2+" "+regStore1+" "+templabel2;
+			IRDisplay = "LE "+regStore1+" "+regStore2+" "+templabel2;
 			IRNodeList.push_back(IRDisplay);
 		}
 
@@ -1145,7 +997,7 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 			//labelStack.push_front(templabel2);
 
-			IRDisplay = "LT "+regStore2+" "+regStore1+" "+templabel2;
+			IRDisplay = "LT "+regStore1+" "+regStore2+" "+templabel2;
 			IRNodeList.push_back(IRDisplay);
 		}
 
@@ -1180,7 +1032,7 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 			//labelStack.push_front(templabel2);
 
-			IRDisplay = "NE "+regStore2+" "+regStore1+" "+templabel2;
+			IRDisplay = "NE "+regStore1+" "+regStore2+" "+templabel2;
 			IRNodeList.push_back(IRDisplay);
 		}
 
@@ -1215,10 +1067,40 @@ void generateIRList() {
 			labelStack.push_front(templabel1);
 			//labelStack.push_front(templabel2);
 
-			IRDisplay = "EQ "+regStore2+" "+regStore1+" "+templabel2;
+			IRDisplay = "EQ "+regStore1+" "+regStore2+" "+templabel2;
 			IRNodeList.push_back(IRDisplay);
 		}
-		
+		/*
+		else if(astPostOrder.front() == "<") {
+			convert << registerValue;
+			regStore = "$T"+convert.str();
+
+			op2 = temp.back();
+			temp.pop_back();
+			op1 = temp.back();
+			temp.pop_back();
+
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			else if(op2[0] != '$') {
+				checkDatatype(op2);
+			}
+			if(datatype == "i") {
+				IRDisplay = "DIVI "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			else {
+				IRDisplay = "DIVF "+op1+" "+op2+" "+regStore;
+				IRNodeList.push_back(IRDisplay);
+			}
+			
+			temp.push_back(regStore);
+			registerValue = registerValue + 1;
+			convert.str("");
+		}*/
+
 		else if(astPostOrder.front() == "READ") {
 
 			op1 = temp.back();
@@ -1251,12 +1133,8 @@ void generateIRList() {
 				IRDisplay = "WRITEI "+op1;
 				IRNodeList.push_back(IRDisplay);
 			}
-			else if(datatype == "f") {
-				IRDisplay = "WRITEF "+op1;
-				IRNodeList.push_back(IRDisplay);
-			}
 			else {
-				IRDisplay = "WRITES "+op1;
+				IRDisplay = "WRITEF "+op1;
 				IRNodeList.push_back(IRDisplay);
 			}
 			temp.pop_back();
@@ -2012,81 +1890,73 @@ list<string> generateTinyCode() {
 			tinyCode.push_back(tinyStmt);
 		}
 
-		//WRITES
-		else if (op == "WRITES") {
-			iss >> result;
-
-			tinyStmt = "sys writes "+result;
-			tinyCode.push_back(tinyStmt);
-		}
-
 		IRList.pop_front();
 	}
 	
 	tinyCode.push_back("sys halt");
 	return tinyCode;
 }
-
-int main(int argc, char *argv[]) {
-if (argc != 2){
-printf("Error! Usage: Micro <filename>");
-}
-else{
-FILE *myfile = fopen(argv[1], "r");	
-if (!myfile) {
-	cout << "File could not be opened" << endl;
-	return -1;
-}
-yyin = myfile;
-myast = ast();
-do {
-	yyparse();
-} while (!feof(yyin));
-
-//Access astlist here like any linked list 
-
-/*while (!astlist.empty()){
-	ast tempast = astlist.front();
-	cout << "New tree marker" << endl;
-	myast.postorder(tempast.root);	
-	astlist.pop_front();
-}*/
-//Access example below
-//cout << "Front of the list!" << endl;
-//myast.inorder((astlist.front()).root);
-//cout << "Back of the list!" << endl;
-//myast.inorder((astlist.back()).root);
-/*
-
-for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
-//NOTE: strings in this list are actual strings not pointers
-//This is example code for iterating through the list
-cout << i<<" "<<*iterator << endl;
-i = i + 1;
-}
-*/
-//LALIT UNCOMMENT THIS PART STARTING HERE<<<<<<<<<<<<<<<
 	
-generateIRList();
-list<string> tinyCode = generateTinyCode();
+int main(int argc, char *argv[]) {
+  	if (argc != 2){
+    		printf("Error! Usage: Micro <filename>");
+  	}
+  	else{
+		FILE *myfile = fopen(argv[1], "r");	
+    		if (!myfile) {
+      			cout << "File could not be opened" << endl;
+      			return -1;
+    		}
+    		yyin = myfile;
+    		myast = ast();
+    		do {
+      			yyparse();
+    		} while (!feof(yyin));
+    	
+	//Access astlist here like any linked list 
+		/*
+		while (!astlist.empty()){
+			ast tempast = astlist.front();
+			cout << "New tree marker" << endl;
+			myast.postorder(tempast.root);	
+			astlist.pop_front();
+		}*/
+    	//Access example below
+    	//cout << "Front of the list!" << endl;
+    	//myast.inorder((astlist.front()).root);
+    	//cout << "Back of the list!" << endl;
+    	//myast.inorder((astlist.back()).root);
+    	/*
+    	
+    	for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
+		//NOTE: strings in this list are actual strings not pointers
+        	//This is example code for iterating through the list
+		cout << i<<" "<<*iterator << endl;
+		i = i + 1;
+    	}
+	*/
+	//LALIT UNCOMMENT THIS PART STARTING HERE<<<<<<<<<<<<<<<
+		
+		generateIRList();
+  		list<string> tinyCode = generateTinyCode();
 
-list<string> varlistTemp = varlist;
-list<string> varlistLoad;
-string var;
-string varTemp;
+  		list<string> varlistTemp = varlist;
+		list<string> varlistLoad;
+		string var;
+		string varTemp;
 
-while(!varlistTemp.empty()) {
-	//NOTE: strings in this list are actual strings not pointers
-	//This is example code for iterating through the list
-	//cout <<*iterator << endl;
-	//i = i + 1;
-	istringstream iss(varlistTemp.front());
-	var = "";
-	iss>>var;
-	var = "";
-	iss>>var;
-	varTemp = "var "+var;
-	varlistLoad.push_front(varTemp);
+		while(!varlistTemp.empty()) {
+			//NOTE: strings in this list are actual strings not pointers
+			//This is example code for iterating through the list
+			//cout <<*iterator << endl;
+			//i = i + 1;
+			istringstream iss(varlistTemp.front());
+			var = "";
+			iss>>var;
+			var = "";
+			iss>>var;
+			varTemp = "var "+var;
+			varlistLoad.push_front(varTemp);
 			varlistTemp.pop_front();
     		}
 
@@ -2100,5 +1970,6 @@ while(!varlistTemp.empty()) {
 			tinyCode.pop_front();
 		}
 	}//END OF ELSE STATEMENT
-}	
-
+	
+		
+}

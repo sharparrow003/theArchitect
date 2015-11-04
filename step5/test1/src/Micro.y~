@@ -636,7 +636,7 @@ while(!varlistTemp.empty()) {
 istringstream iss(varlistTemp.front());
 iss >> type;
 iss >> varTemp;
-//cout<<varTemp<<endl;
+cout<<varTemp<<endl;
 if(varTemp == var) {
 	if(type == "INT") {
 		datatype = "i";

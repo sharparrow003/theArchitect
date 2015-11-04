@@ -1,0 +1,51 @@
+STOREF 0.0001 $T1
+STOREF $T1 tolerance
+READF num
+STOREF num approx
+STOREI 0 $T2
+STOREI $T2 count
+STOREF 0.0 $T3
+STOREF $T3 diff
+STOREI 0 $T4
+STOREI $T4 enough
+LABEL label1
+STOREI 1 $T5
+EQ enough $T5 label3
+STOREI 1 $T6
+ADDI count $T6 $T7
+STOREI $T7 count
+STOREF 0.5 $T8
+DIVF num approx $T9
+ADDF approx $T9 $T10
+MULTF $T8 $T10 $T11
+STOREF $T11 newapprox
+SUBF approx newapprox $T12
+STOREF $T12 diff
+STOREF 0.0 $T13
+LE diff $T13 label4
+GE diff tolerance label6
+STOREI 1 $T14
+STOREI $T14 enough
+JUMP label7
+LABEL label6
+LABEL label7
+JUMP label5
+LABEL label4
+STOREF 0.0 $T15
+SUBF $T15 tolerance $T16
+LE diff $T16 label8
+STOREI 1 $T17
+STOREI $T17 enough
+JUMP label9
+LABEL label8
+LABEL label9
+JUMP label5
+LABEL label5
+STOREF newapprox approx
+LABEL label2
+JUMP label1
+LABEL label3
+WRITEF approx
+WRITES space
+WRITEI count
+WRITES eol

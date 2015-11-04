@@ -1,0 +1,29 @@
+STOREI 7 $T1
+STOREI $T1 num
+STOREI 2 $T2
+STOREI $T2 i
+STOREI 42 $T3
+STOREI $T3 a
+STOREI 5 $T4
+GE i $T4 label1
+ADDI num a $T5
+STOREI $T5 num
+STOREI 3 $T6
+GE i $T6 label3
+ADDI num a $T7
+STOREI $T7 num
+JUMP label4
+LABEL label3
+LABEL label4
+JUMP label2
+LABEL label1
+STOREI 5 $T8
+LT i $T8 label5
+SUBI num a $T9
+STOREI $T9 num
+JUMP label6
+LABEL label5
+LABEL label6
+JUMP label2
+LABEL label2
+WRITEI num
