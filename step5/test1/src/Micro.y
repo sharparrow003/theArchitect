@@ -19,8 +19,10 @@ extern "C" FILE *yyin;
 class ast {
 	public:
 		ast();
+		ast(node *);
 		~ast();
 		node *root;
+		
 		node *newval(string);
 		node *newop(node *, string);
 		node *newmath(node *, string);	
@@ -32,21 +34,25 @@ class ast {
 	private:
 		void destroy_tree(node *);
 };
-//int scope;
+
+//Michael's Declarations
 ast myast;
 deque<ast> astlist;
 list<string> varlist;
-list<string> astPostOrder;
-list<string> IRNodeList;
-static int registerValue = 1;
-list <string> IRList;
-string datatype="i";
+//exprhead is being used as a temporary place holder for the root expression in nested parentheticals. i.e. (((x)+x)+x)
 static node * exprhead = 0;
-void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
-list<string> generateTinyCode();		//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
-int getRegister(string IRReg);					//Calculates the register number from IR Node ***IMPORTANT***
 
+//Lalit's Declarations
+static int registerValue = 1;
+string datatype="i";
 int regVal = 0;
+int getRegister(string IRReg);					//Calculates the register number from IR Node ***IMPORTANT***
+list<string> IRList;
+list<string> IRNodeList;
+list<string> astPostOrder;
+list<string> generateTinyCode();				//Generates tiny code from the list of IR Nodes  ***IMPORTANT***
+void printList(list<string> strList);				//Prints out list ***NOT IMPORTANT***
+
 
 void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 %}
@@ -411,35 +417,17 @@ mulop: MULOP
 ;
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
 {
-	//intialize variables to create new IF, COND, and FI nodes to fit in the existing AST structure.
-	ast ifast;
-	ast fiast;
-	ast condast;
-	ifast = ast();
-	fiast = ast();
-	condast = ast();
-	//THIS HAS TO BE MESSY BECAUSE OF HOW I DID STEP 3
-	//I AM PAYING FOR MY PAST MISTAKES
-	
-	//node *ifptr = myast.newval("IF");
-	node *ifptr = new node();
-	ifptr->value = new string("IF");
-	ifptr->left = 0;
-	ifptr->right = 0;
-	//node *fiptr = myast.newval("FI");
-	node *fiptr = new node();
-	fiptr->value = new string("FI");
-	fiptr->left = 0;
-	fiptr->right = 0;
-	
+	node *ifptr = myast.newval("IF");
+	node *fiptr = myast.newval("FI");
+	myast.root = 0;
 	node *condptr = $<nval>3;
 	//insert a new if node right before the statement list we saved	
-	
-	//cout << "Size of list after IF: " << $<ival>6 << endl;
 	deque<ast>::iterator it = astlist.begin() + $<ival>6;
-	ifast.root = ifptr;
-	fiast.root = fiptr;
-	condast.root = condptr;
+	
+	ast ifast = ast(ifptr);
+	ast fiast = ast(fiptr);
+	ast condast = ast(condptr);
+	
 	astlist.insert(it,condast);
 	it = astlist.begin() + $<ival>6;
 	astlist.insert(it,ifast);
@@ -451,11 +439,7 @@ else_part: ELSE decl stmt_list
 {	
 	ast elseast;
 	elseast = ast();
-	node *elseptr = new node();
-	elseptr->value = new string("ELSE");
-	elseptr->left = 0;
-	elseptr->right = 0;
-	elseast.root = elseptr;
+	node *elseptr = elseast.newval("ELSE");
 	//cout << "Size of list after ELSE: " << $<ival>3 << endl;
 	deque<ast>::iterator it = astlist.begin() + $<ival>3;
 	//cout << *((*it).root->value) << endl;
@@ -467,12 +451,8 @@ else_part: ELSE decl stmt_list
 cond: expr compop expr  
 {
 	//make new head of the conditional statement
-	//node *conhead = myast.newmath($<nval>1,$<sval>2);	
-	//node *temp = myast.addright(conhead,$<nval>3);
-	node *conhead = new node();
-	conhead->value = new string($<sval>2);
-	conhead->left = $<nval>1;
-	conhead->right = $<nval>3;
+	node *conhead = myast.newmath($<nval>1,$<sval>2);
+	myast.addright(conhead,$<nval>3);
 	$<nval>$ = conhead;
 	myast.root = 0;
 }
@@ -499,19 +479,19 @@ incr_stmt: assign_expr | empty
 ;
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
+	
 }
 ;
 empty:    
 ;
 %%
-ast::ast() {
-	root = 0;
-}
-ast::~ast() {
-	if (root != 0){
-		//delete root;
-	}
-}
+
+
+
+ast::ast() {root = 0;}
+ast::ast(node *root){this->root = root;}
+ast::~ast() {}
+
 void ast::destroy_tree(node *leaf){
 	if(leaf != 0){
 		destroy_tree(leaf->left);
