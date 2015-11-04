@@ -187,8 +187,6 @@ func_body: decl stmt_list
 ;
 stmt_list: stmt stmt_list   
 {
-	//cout << "First index: " << $<ival>1 << endl;
-	//cout << "Second index: " << $<ival>2 << endl;
 	$<ival>$ = $<ival>1;
 }
 | empty
@@ -199,13 +197,17 @@ stmt_list: stmt stmt_list
 stmt: base_stmt 
 {$<ival>$ = $<ival>1;}
 | if_stmt 
-{$<ival>$ = $<ival>1;}
+{
+	$<ival>$ = $<ival>1;
+}
 | for_stmt  
 {$<ival>$ = 0;}
 ;
 
 base_stmt: assign_stmt
-{$<ival>$ = $<ival>1;} 
+{
+	$<ival>$ = $<ival>1;
+} 
 | read_stmt 
 {$<ival>$ = $<ival>1;}
 | write_stmt 
@@ -223,6 +225,7 @@ assign_stmt: assign_expr SCOLONOP
 	//cout << "Started post order!" << endl;
 	//myast.postorder($<nval>1);
 	//cout << "HEAD-> " << *(myast.root->value) << endl;
+	node *temp1;
 	astlist.push_back(myast);
 	//return pointer to statement's place in the list.
 	myast = ast();
@@ -237,6 +240,9 @@ assign_expr: id ASSMTOP expr
 	temp1 = myast.newval($<sval>1);
 	temp2 = myast.newmath(temp1, ":=");
 	myast.addright(temp2,myast.root);	
+	//cout << "Begin Post Order" << endl;
+	//myast.postorder(temp2);
+	//cout << "End Post Order" << endl;
 	$<nval>$ = temp2;
 }
 //New ASSMTOP head with id as left, expr head as right
@@ -405,7 +411,6 @@ mulop: MULOP
 ;
 if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI   
 {
-	/*
 	//intialize variables to create new IF, COND, and FI nodes to fit in the existing AST structure.
 	ast ifast;
 	ast fiast;
@@ -413,52 +418,63 @@ if_stmt: IF OPENPAROP cond CLOSEPAROP decl stmt_list else_part FI
 	ifast = ast();
 	fiast = ast();
 	condast = ast();
-	node *ifptr = myast.newval("IF");	
-	node *fiptr = myast.newval("FI");
-	node *condptr = $<nval>1;
+	//THIS HAS TO BE MESSY BECAUSE OF HOW I DID STEP 3
+	//I AM PAYING FOR MY PAST MISTAKES
+	
+	//node *ifptr = myast.newval("IF");
+	node *ifptr = new node();
+	ifptr->value = new string("IF");
+	ifptr->left = 0;
+	ifptr->right = 0;
+	//node *fiptr = myast.newval("FI");
+	node *fiptr = new node();
+	fiptr->value = new string("FI");
+	fiptr->left = 0;
+	fiptr->right = 0;
+	
+	node *condptr = $<nval>3;
 	//insert a new if node right before the statement list we saved	
 	
-	//deque<ast>::iterator it = astlist.begin();
-	//for (it; it!=astlist.end(); it++){
-	//	cout << *((*it).root->value) << endl;
-	//}
-	//cout << *((*it).root->value) << endl;
-	cout << "Size of list after IF: " << $<ival>6 << endl;
+	//cout << "Size of list after IF: " << $<ival>6 << endl;
 	deque<ast>::iterator it = astlist.begin() + $<ival>6;
 	ifast.root = ifptr;
 	fiast.root = fiptr;
 	condast.root = condptr;
-	//astlist.insert(it,condast);
-	//astlist.insert(it,ifast);
+	astlist.insert(it,condast);
+	it = astlist.begin() + $<ival>6;
+	astlist.insert(it,ifast);
 	astlist.push_back(fiast);
 	$<ival>$ = $<ival>6;
-	*/ 
 }
 ;
 else_part: ELSE decl stmt_list 
 {	
-	/*
 	ast elseast;
 	elseast = ast();
-	node *elseptr = myast.newval("ELSE");
+	node *elseptr = new node();
+	elseptr->value = new string("ELSE");
+	elseptr->left = 0;
+	elseptr->right = 0;
 	elseast.root = elseptr;
-	cout << "Size of list after ELSE: " << $<ival>2 << endl;
-	deque<ast>::iterator it = astlist.begin() + $<ival>2;
-	cout << *((*it).root->value) << endl;
-	//astlist.insert(it,elseast);
-	*/
+	//cout << "Size of list after ELSE: " << $<ival>3 << endl;
+	deque<ast>::iterator it = astlist.begin() + $<ival>3;
+	//cout << *((*it).root->value) << endl;
+	astlist.insert(it,elseast);
+
 }
 | empty  
 ;
 cond: expr compop expr  
 {
-	/*
 	//make new head of the conditional statement
-	node *conhead = myast.newmath($<nval>1,$<sval>2);	
-	//attach second expr as right child
-	myast.addright(conhead, $<nval>3);
+	//node *conhead = myast.newmath($<nval>1,$<sval>2);	
+	//node *temp = myast.addright(conhead,$<nval>3);
+	node *conhead = new node();
+	conhead->value = new string($<sval>2);
+	conhead->left = $<nval>1;
+	conhead->right = $<nval>3;
 	$<nval>$ = conhead;
-	*/
+	myast.root = 0;
 }
 ;
 
@@ -476,8 +492,10 @@ compop: GREATER
 {$<sval>$ = ">=";} 
 ;
 init_stmt: assign_expr | empty   
+{myast.root = 0;}
 ;
 incr_stmt: assign_expr | empty   
+{myast.root = 0;}
 ;
 for_stmt: FOR OPENPAROP init_stmt SCOLONOP cond SCOLONOP incr_stmt CLOSEPAROP decl stmt_list ROF   
 {
@@ -1398,28 +1416,30 @@ int main(int argc, char *argv[]) {
     		do {
       			yyparse();
     		} while (!feof(yyin));
-    	//Access astlist here like any linked list 
-   		/*
+    	
+	//Access astlist here like any linked list 
 		while (!astlist.empty()){
 			ast tempast = astlist.front();
-			node *tempnode = tempast.root;
-			cout << *(tempnode->value) << endl;
+			cout << "New tree marker" << endl;
+			myast.postorder(tempast.root);	
 			astlist.pop_front();
 		}
-		*/ 
     	//Access example below
     	//cout << "Front of the list!" << endl;
     	//myast.inorder((astlist.front()).root);
     	//cout << "Back of the list!" << endl;
     	//myast.inorder((astlist.back()).root);
-    
     	/*
+    	
     	for (list<string>::const_iterator iterator = varlist.begin(); iterator != varlist.end(); iterator++){
 		//NOTE: strings in this list are actual strings not pointers
         	//This is example code for iterating through the list
 		cout << i<<" "<<*iterator << endl;
 		i = i + 1;
-    	}*/
+    	}
+	*/
+	//LALIT UNCOMMENT THIS PART STARTING HERE<<<<<<<<<<<<<<<
+	/*	
 		generateIRList();
   		list<string> tinyCode = generateTinyCode();
 
@@ -1452,5 +1472,7 @@ int main(int argc, char *argv[]) {
 			cout<<tinyCode.front()<<endl;
 			tinyCode.pop_front();
 		}
-	}//END OF ELSE STATEMENT	
+	}//END OF ELSE STATEMENT
+	*/
+	}	
 }
