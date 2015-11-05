@@ -411,10 +411,21 @@ primary: OPENPAROP expr CLOSEPAROP
 	$<nval>$ = temp;
 } 
 | FLTLIT
-{
+{/*
 	ostringstream buffer;
 	buffer << $<fval>1;
 	node *temp = myast.newval(buffer.str());
+	$<nval>$ = temp;*/
+
+	ostringstream buffer;
+	buffer << $<fval>1;
+	string s1(buffer.str());
+	int findings = int(s1.find("."));
+	if(findings == -1) {
+		s1 = s1 + ".0";
+	}
+
+	node *temp = myast.newval(s1);
 	$<nval>$ = temp;
 }
 ;
@@ -919,7 +930,7 @@ void generateIRList() {
 			}
 			else {
 				//IF -- ELSE -- FI
-				
+				activityStack.pop_front();
 				templabel1 = labelStack.front();
 				labelStack.pop_front();
 				//templabel1 = labelStack.front();
@@ -1040,22 +1051,49 @@ void generateIRList() {
 			convert.str("");
 			convert << registerValue;
 			regStore1 = "$T"+convert.str();
+		
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(op2[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op2);
+			}
 
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
 			
 	
-			registerValue = registerValue + 1;
-			convert.str("");
+				registerValue = registerValue + 1;
+				convert.str("");
 
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
 
-			registerValue = registerValue + 1;
+				registerValue = registerValue + 1;
 
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
+				IRDisplay = "STOREI "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
 
+			}
+			else {
+				IRDisplay = "STOREF "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
+			
+	
+				registerValue = registerValue + 1;
+				convert.str("");
+
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
+
+				registerValue = registerValue + 1;
+
+				IRDisplay = "STOREF "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+			}
 			templabel1 = labelStack.front();
 			labelStack.pop_front();
 			templabel2 = labelStack.front();
@@ -1076,21 +1114,48 @@ void generateIRList() {
 			convert << registerValue;
 			regStore1 = "$T"+convert.str();
 
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(op2[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op2);
+			}
+
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
 			
 	
-			registerValue = registerValue + 1;
-			convert.str("");
+				registerValue = registerValue + 1;
+				convert.str("");
 
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
 
-			registerValue = registerValue + 1;
+				registerValue = registerValue + 1;
 
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
+				IRDisplay = "STOREI "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
 
+			}
+			else {
+				IRDisplay = "STOREF "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
+			
+	
+				registerValue = registerValue + 1;
+				convert.str("");
+
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
+
+				registerValue = registerValue + 1;
+
+				IRDisplay = "STOREF "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+			}
 			templabel1 = labelStack.front();
 			labelStack.pop_front();
 			templabel2 = labelStack.front();
@@ -1111,21 +1176,48 @@ void generateIRList() {
 			convert << registerValue;
 			regStore1 = "$T"+convert.str();
 
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(op2[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op2);
+			}
+
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
 			
 	
-			registerValue = registerValue + 1;
-			convert.str("");
+				registerValue = registerValue + 1;
+				convert.str("");
 
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
 
-			registerValue = registerValue + 1;
+				registerValue = registerValue + 1;
 
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
+				IRDisplay = "STOREI "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
 
+			}
+			else {
+				IRDisplay = "STOREF "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
+			
+	
+				registerValue = registerValue + 1;
+				convert.str("");
+
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
+
+				registerValue = registerValue + 1;
+
+				IRDisplay = "STOREF "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+			}
 			templabel1 = labelStack.front();
 			labelStack.pop_front();
 			templabel2 = labelStack.front();
@@ -1146,20 +1238,48 @@ void generateIRList() {
 			convert << registerValue;
 			regStore1 = "$T"+convert.str();
 
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(op2[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op2);
+			}
+
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
 			
 	
-			registerValue = registerValue + 1;
-			convert.str("");
+				registerValue = registerValue + 1;
+				convert.str("");
 
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
 
-			registerValue = registerValue + 1;
+				registerValue = registerValue + 1;
 
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
+				IRDisplay = "STOREI "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+
+			}
+			else {
+				IRDisplay = "STOREF "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
+			
+	
+				registerValue = registerValue + 1;
+				convert.str("");
+
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
+
+				registerValue = registerValue + 1;
+
+				IRDisplay = "STOREF "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+			}
 
 			templabel1 = labelStack.front();
 			labelStack.pop_front();
@@ -1181,20 +1301,48 @@ void generateIRList() {
 			convert << registerValue;
 			regStore1 = "$T"+convert.str();
 
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(op2[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op2);
+			}
+
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
 			
 	
-			registerValue = registerValue + 1;
-			convert.str("");
+				registerValue = registerValue + 1;
+				convert.str("");
 
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
 
-			registerValue = registerValue + 1;
+				registerValue = registerValue + 1;
 
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
+				IRDisplay = "STOREI "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+
+			}
+			else {
+				IRDisplay = "STOREF "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
+			
+	
+				registerValue = registerValue + 1;
+				convert.str("");
+
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
+
+				registerValue = registerValue + 1;
+
+				IRDisplay = "STOREF "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+			}
 
 			templabel1 = labelStack.front();
 			labelStack.pop_front();
@@ -1216,20 +1364,48 @@ void generateIRList() {
 			convert << registerValue;
 			regStore1 = "$T"+convert.str();
 
-			IRDisplay = "STOREI "+op2+" "+regStore1;
-			IRNodeList.push_back(IRDisplay);
+			if(op1[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op1);
+			}
+			if(op2[0]!='$'){
+				//check for int/float. set global variable
+				checkDatatype(op2);
+			}
+
+			if(datatype == "i") {
+				IRDisplay = "STOREI "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
 			
 	
-			registerValue = registerValue + 1;
-			convert.str("");
+				registerValue = registerValue + 1;
+				convert.str("");
 
-			convert << registerValue;
-			regStore2 = "$T"+convert.str();
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
 
-			registerValue = registerValue + 1;
+				registerValue = registerValue + 1;
 
-			IRDisplay = "STOREI "+op1+" "+regStore2;
-			IRNodeList.push_back(IRDisplay);
+				IRDisplay = "STOREI "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+
+			}
+			else {
+				IRDisplay = "STOREF "+op2+" "+regStore1;
+				IRNodeList.push_back(IRDisplay);
+			
+	
+				registerValue = registerValue + 1;
+				convert.str("");
+
+				convert << registerValue;
+				regStore2 = "$T"+convert.str();
+
+				registerValue = registerValue + 1;
+
+				IRDisplay = "STOREF "+op1+" "+regStore2;
+				IRNodeList.push_back(IRDisplay);
+			}
 
 			templabel1 = labelStack.front();
 			labelStack.pop_front();
@@ -1343,7 +1519,9 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			
+
+			datatype = "i";			
+	
 			if (op1[0] != '$') {
 				convert.str("");
 				regVal1 = getRegister(result);
@@ -1392,7 +1570,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			
+			datatype = "f";	
 			if (op1[0] != '$') {
 				convert.str("");
 				regVal1 = getRegister(result);
@@ -1441,6 +1619,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
+			datatype = "i";	
 			
 			if (op1[0] != '$') {
 				convert.str("");
@@ -1490,6 +1669,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
+			datatype = "f";	
 			
 			if (op1[0] != '$') {
 				convert.str("");
@@ -1540,7 +1720,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			
+			datatype = "i";	
 			if (op1[0] != '$') {
 				convert.str("");
 				regVal1 = getRegister(result);
@@ -1590,7 +1770,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			
+			datatype = "f";	
 			if (op1[0] != '$') {
 				convert.str("");
 				regVal1 = getRegister(result);
@@ -1639,7 +1819,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			
+			datatype = "i";	
 			if (op1[0] != '$') {
 				convert.str("");
 				regVal1 = getRegister(result);
@@ -1689,7 +1869,7 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			
+			datatype = "f";	
 			if (op1[0] != '$') {
 				convert.str("");
 				regVal1 = getRegister(result);
@@ -1739,7 +1919,7 @@ list<string> generateTinyCode() {
 			iss >> result;
 			tinyStmt = "move ";
 			ostringstream convert;
-
+			datatype = "i";	
 			if(op1[0] == '$'){
 				convert.str("");
 				regVal1 = getRegister(op1);
@@ -1773,7 +1953,7 @@ list<string> generateTinyCode() {
 			iss >> result;
 			tinyStmt = "move ";
 			ostringstream convert;
-
+			datatype = "f";	
 			if(op1[0] == '$'){
 				convert.str("");
 				regVal1 = getRegister(op1);
@@ -1808,8 +1988,16 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			tinyStmt = "cmpi ";
+			//tinyStmt = "cmpi ";
 			
+			
+			if(datatype == "i") {
+				tinyStmt = "cmpi ";
+			}
+			else {
+				tinyStmt = "cmpr ";
+			}
+
 			if(op1[0] == '$') {
 				regVal1 = getRegister(op1);
 				convert.str("");
@@ -1839,7 +2027,15 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			tinyStmt = "cmpi ";
+			//tinyStmt = "cmpi ";
+			
+			
+			if(datatype == "i") {
+				tinyStmt = "cmpi ";
+			}
+			else {
+				tinyStmt = "cmpr ";
+			}
 			
 			if(op1[0] == '$') {
 				regVal1 = getRegister(op1);
@@ -1870,7 +2066,15 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			tinyStmt = "cmpi ";
+			//tinyStmt = "cmpi ";
+			
+			
+			if(datatype == "i") {
+				tinyStmt = "cmpi ";
+			}
+			else {
+				tinyStmt = "cmpr ";
+			}
 			
 			if(op1[0] == '$') {
 				regVal1 = getRegister(op1);
@@ -1901,7 +2105,15 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			tinyStmt = "cmpi ";
+			//tinyStmt = "cmpi ";
+			
+			
+			if(datatype == "i") {
+				tinyStmt = "cmpi ";
+			}
+			else {
+				tinyStmt = "cmpr ";
+			}
 			
 			if(op1[0] == '$') {
 				regVal1 = getRegister(op1);
@@ -1932,7 +2144,15 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			tinyStmt = "cmpi ";
+			//tinyStmt = "cmpi ";
+			
+			
+			if(datatype == "i") {
+				tinyStmt = "cmpi ";
+			}
+			else {
+				tinyStmt = "cmpr ";
+			}
 			
 			if(op1[0] == '$') {
 				regVal1 = getRegister(op1);
@@ -1963,7 +2183,15 @@ list<string> generateTinyCode() {
 			iss >> op2;
 			iss >> result;
 			ostringstream convert;
-			tinyStmt = "cmpi ";
+			//tinyStmt = "cmpi ";
+			
+			
+			if(datatype == "i") {
+				tinyStmt = "cmpi ";
+			}
+			else {
+				tinyStmt = "cmpr ";
+			}
 			
 			if(op1[0] == '$') {
 				regVal1 = getRegister(op1);
@@ -2008,28 +2236,28 @@ list<string> generateTinyCode() {
 		//READI
 		else if (op == "READI") {
 			iss >> result;
-	
+			datatype = "i";	
 			tinyStmt = "sys readi "+result;
 			tinyCode.push_back(tinyStmt);
 		}
 		//READF
 		else if (op == "READF") {
 			iss >> result;
-	
+			datatype = "f";	
 			tinyStmt = "sys readr "+result;
 			tinyCode.push_back(tinyStmt);
 		}
 		//WRITEI
 		else if (op == "WRITEI") {
 			iss >> result;
-	
+			datatype = "i";	
 			tinyStmt = "sys writei "+result;
 			tinyCode.push_back(tinyStmt);
 		}
 		//WRITEF
 		else if (op == "WRITEF") {
 			iss >> result;
-	
+			datatype = "f";	
 			tinyStmt = "sys writer "+result;
 			tinyCode.push_back(tinyStmt);
 		}

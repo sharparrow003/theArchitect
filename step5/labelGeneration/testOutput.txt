@@ -6,8 +6,8 @@
 ;STOREF $T2 approx
 ;STOREI 0 $T3
 ;STOREI $T3 count
-;STOREI 0 $T4
-;STOREI $T4 diff
+;STOREF 0.0 $T4
+;STOREF $T4 diff
 ;STOREI 0 $T5
 ;STOREI $T5 enough
 ;LABEL label2
@@ -25,11 +25,11 @@
 ;SUBF approx newapprox $T14
 ;STOREF $T14 $T15
 ;STOREF $T15 diff
-;STOREI 0 $T16
-;STOREI diff $T17
+;STOREF 0.0 $T16
+;STOREF diff $T17
 ;LE $T17 $T16 label3
-;STOREI tolerance $T18
-;STOREI diff $T19
+;STOREF tolerance $T18
+;STOREF diff $T19
 ;GE $T19 $T18 label5
 ;STOREI 1 $T20
 ;STOREI $T20 enough
@@ -38,9 +38,9 @@
 ;LABEL label6
 ;JUMP label4
 ;LABEL label3
-;SUBI 0 tolerance $T21
-;STOREI $T21 $T22
-;STOREI diff $T23
+;SUBF 0.0 tolerance $T21
+;STOREF $T21 $T22
+;STOREF diff $T23
 ;LE $T23 $T22 label7
 ;STOREI 1 $T24
 ;STOREI $T24 enough
@@ -74,7 +74,7 @@ move num r1
 move r1 approx 
 move 0 r2
 move r2 count 
-move 0 r3
+move 0.0 r3 
 move r3 diff 
 move 0 r4
 move r4 enough 
@@ -97,13 +97,13 @@ move r11 r12
 move r12 newapprox 
 move r13 r14 
 move r14 diff 
-move 0 r15
-move diff r16
-cmpi r16 r15
+move 0.0 r15 
+move diff r16 
+cmpr r16 r15
 jle label3
-move tolerance r17
-move diff r18
-cmpi r18 r17
+move tolerance r17 
+move diff r18 
+cmpr r18 r17
 jge label5
 move 1 r19
 move r19 enough 
@@ -112,11 +112,9 @@ label label5
 label label6
 jmp label4
 label label3
-move 0 r20
-subi tolerance r20
-move r20 r21
-move diff r22
-cmpi r22 r21
+move r20 r21 
+move diff r22 
+cmpr r22 r21
 jle label7
 move 1 r23
 move r23 enough 
