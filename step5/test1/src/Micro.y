@@ -122,6 +122,13 @@ decl: string_decl decl
 ;
 string_decl: STRING id ASSMTOP str SCOLONOP  
 {
+	string s1($<sval>2);
+	string s2($<sval>4);
+
+	string s3 = "STRING "+s1+" "+s2;
+	//cout<<s3<<endl;
+
+	varlist.push_back(s3);
 }
 ;
 str: STRLIT  {$<sval>$ = $1; }
@@ -628,28 +635,39 @@ astPostOrder.push_back(*(head->value));
 }
 
 void checkDatatype(string var) {
-list <string> varlistTemp = varlist;
-string type;
-string varTemp;
+	list <string> varlistTemp = varlist;
+	string type;
+	string varTemp;
+	int flag = 0;
+	while(!varlistTemp.empty()) {
+	istringstream iss(varlistTemp.front());
+	iss >> type;
+	iss >> varTemp;
+	//cout<<type<<endl;
+	if(varTemp == var) {
+		flag = 1;
+		if(type == "INT") {
+			datatype = "i";
+		}
+		else if(type == "FLOAT") {
+			datatype = "f";
+		}
+		else {
+			datatype = "s";
+		}
+	}
+	varlistTemp.pop_front();
+	}
 
-while(!varlistTemp.empty()) {
-istringstream iss(varlistTemp.front());
-iss >> type;
-iss >> varTemp;
-//cout<<varTemp<<endl;
-if(varTemp == var) {
-	if(type == "INT") {
-		datatype = "i";
+	if(flag == 0) {
+		if(var.find('.') != string::npos) {
+			datatype = "f";
+		}
+		else {
+			datatype = "i";
+		}
+
 	}
-	else if(type == "FLOAT") {
-		datatype = "f";
-	}
-	else {
-		datatype = "s";
-	}
-}
-varlistTemp.pop_front();
-}
 }
 
 void generateIRList() {
@@ -693,6 +711,7 @@ void generateIRList() {
 			if(op1[0]!='$'){
 				//check for int/float. set global variable
 				checkDatatype(op1);
+				//cout<<op1<<endl;
 			}
 			if(datatype == "i") {
 				IRDisplay = "STOREI "+op1+" "+regStore;
@@ -927,6 +946,9 @@ void generateIRList() {
 			convert.str("");
 			convert << labelCount;
 			label = "label"+convert.str();
+			
+			IRDisplay = "LABEL "+label;
+			IRNodeList.push_back(IRDisplay);
 
 			labelStack.push_front(label);
 			labelCount++;
@@ -2074,6 +2096,8 @@ list<string> varlistTemp = varlist;
 list<string> varlistLoad;
 string var;
 string varTemp;
+string strName;
+string strVal;
 
 while(!varlistTemp.empty()) {
 	//NOTE: strings in this list are actual strings not pointers
@@ -2083,12 +2107,24 @@ while(!varlistTemp.empty()) {
 	istringstream iss(varlistTemp.front());
 	var = "";
 	iss>>var;
-	var = "";
-	iss>>var;
-	varTemp = "var "+var;
-	varlistLoad.push_front(varTemp);
-			varlistTemp.pop_front();
-    		}
+	if(var == "STRING") {
+		//var = "";
+		iss>>strName;
+		varTemp  = "str "+strName;
+		//iss>>strVal;
+		strVal = varlistTemp.front().erase(0,var.length()+strName.length()+2);
+		varTemp = varTemp+" "+strVal;
+		varlistLoad.push_front(varTemp);
+		varlistTemp.pop_front();
+	}
+	else {
+		var = "";
+		iss>>var;
+		varTemp = "var "+var;
+		varlistLoad.push_front(varTemp);
+		varlistTemp.pop_front();
+		}
+    	}
 
 		while(!varlistLoad.empty()) {
 			tinyCode.push_front(varlistLoad.front());

@@ -1,82 +1,136 @@
 ;IR code
-;STOREI 7 $T1
-;STOREI $T1 num
-;STOREI 2 $T2
-;STOREI $T2 i
-;STOREI 42 $T3
-;STOREI $T3 a
-;STOREI 5 $T4
-;STOREI i $T5
-;GE $T5 $T4 label1
-;ADDI num a $T6
-;STOREI $T6 $T7
-;STOREI $T7 num
-;STOREI 3 $T8
-;STOREI i $T9
-;GE $T9 $T8 label3
-;ADDI num a $T10
-;STOREI $T10 $T11
-;STOREI $T11 num
-;JUMP label4
-;LABEL label3
-;LABEL label4
-;JUMP label2
-;LABEL label1
-;STOREI 5 $T12
-;STOREI i $T13
-;LT $T13 $T12 label5
-;SUBI num a $T14
-;STOREI $T14 $T15
-;STOREI $T15 num
+;STOREF 0.0001 $T1
+;STOREF $T1 tolerance
+;READF num
+;STOREF num $T2
+;STOREF $T2 approx
+;STOREI 0 $T3
+;STOREI $T3 count
+;STOREI 0 $T4
+;STOREI $T4 diff
+;STOREI 0 $T5
+;STOREI $T5 enough
+;LABEL label2
+;STOREI 1 $T6
+;STOREI enough $T7
+;EQ $T7 $T6 label1
+;ADDI count 1 $T8
+;STOREI $T8 $T9
+;STOREI $T9 count
+;DIVF num approx $T10
+;ADDF approx $T10 $T11
+;MULTF 0.5 $T11 $T12
+;STOREF $T12 $T13
+;STOREF $T13 newapprox
+;SUBF approx newapprox $T14
+;STOREF $T14 $T15
+;STOREF $T15 diff
+;STOREI 0 $T16
+;STOREI diff $T17
+;LE $T17 $T16 label3
+;STOREI tolerance $T18
+;STOREI diff $T19
+;GE $T19 $T18 label5
+;STOREI 1 $T20
+;STOREI $T20 enough
 ;JUMP label6
 ;LABEL label5
 ;LABEL label6
+;JUMP label4
+;LABEL label3
+;SUBI 0 tolerance $T21
+;STOREI $T21 $T22
+;STOREI diff $T23
+;LE $T23 $T22 label7
+;STOREI 1 $T24
+;STOREI $T24 enough
+;JUMP label8
+;LABEL label7
+;LABEL label8
+;JUMP label4
+;LABEL label4
+;STOREF newapprox $T25
+;STOREF $T25 approx
 ;JUMP label2
-;LABEL label2
-;WRITEI num
+;LABEL label1
+;WRITEF approx
+;WRITES space
+;WRITEI count
+;WRITES eol
 ;tiny code
-var i
-var a
+var count
+var enough
+var newapprox
+var approx
 var num
-move 7 r0
-move r0 num 
-move 2 r1
-move r1 i 
-move 42 r2
-move r2 a 
-move 5 r3
-move i r4
-cmpi r4 r3
-jge label1
-move num r5
-addi a r5
-move r5 r6
-move r6 num 
-move 3 r7
-move i r8
-cmpi r8 r7
-jge label3
+var tolerance
+var diff
+str eol "\n"
+str space " "
+move 0.0001 r0 
+move r0 tolerance 
+sys readr num
+move num r1 
+move r1 approx 
+move 0 r2
+move r2 count 
+move 0 r3
+move r3 diff 
+move 0 r4
+move r4 enough 
+label label2
+move 1 r5
+move enough r6
+cmpi r6 r5
+jeq label1
+move count r7
+addi 1 r7
+move r7 r8
+move r8 count 
 move num r9
-addi a r9
-move r9 r10
-move r10 num 
-jmp label4
-label label3
-label label4
-jmp label2
-label label1
-move 5 r11
-move i r12
-cmpi r12 r11
-jlt label5
-move num r13
-subi a r13
-move r13 r14
-move r14 num 
+divr approx r9
+move approx r10
+addr r9  r10 
+move 0.5 r11
+mulr r10  r11 
+move r11 r12 
+move r12 newapprox 
+move r13 r14 
+move r14 diff 
+move 0 r15
+move diff r16
+cmpi r16 r15
+jle label3
+move tolerance r17
+move diff r18
+cmpi r18 r17
+jge label5
+move 1 r19
+move r19 enough 
 jmp label6
 label label5
 label label6
+jmp label4
+label label3
+move 0 r20
+subi tolerance r20
+move r20 r21
+move diff r22
+cmpi r22 r21
+jle label7
+move 1 r23
+move r23 enough 
+jmp label8
+label label7
+label label8
+jmp label4
+label label4
+move newapprox r24 
+move r24 approx 
 jmp label2
-label label2
-sys writei num
+label label1
+sys writer approx
+sys writes space
+sys writei count
+sys writes eol
 sys halt

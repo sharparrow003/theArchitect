@@ -548,14 +548,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   111,   111,   115,   117,   119,   120,   121,   123,   127,
-     129,   142,   143,   146,   147,   149,   164,   179,   184,   187,
-     189,   193,   193,   195,   195,   197,   199,   201,   205,   210,
-     212,   216,   220,   224,   226,   228,   232,   248,   262,   282,
-     302,   304,   318,   336,   339,   352,   369,   372,   376,   378,
-     380,   380,   382,   382,   384,   394,   399,   406,   414,   416,
-     419,   421,   424,   444,   455,   457,   467,   469,   471,   473,
-     475,   477,   480,   485,   491,   496,   502,   531
+       0,   111,   111,   115,   117,   119,   120,   121,   123,   134,
+     136,   149,   150,   153,   154,   156,   171,   186,   191,   194,
+     196,   200,   200,   202,   202,   204,   206,   208,   212,   217,
+     219,   223,   227,   231,   233,   235,   239,   255,   269,   289,
+     309,   311,   325,   343,   346,   359,   376,   379,   383,   385,
+     387,   387,   389,   389,   391,   401,   406,   413,   421,   423,
+     426,   428,   431,   451,   462,   464,   474,   476,   478,   480,
+     482,   484,   487,   492,   498,   503,   509,   538
 };
 #endif
 
@@ -1577,20 +1577,27 @@ yyreduce:
 /* Line 1455 of yacc.c  */
 #line 124 "src/Micro.y"
     {
+	string s1((yyvsp[(2) - (5)].sval));
+	string s2((yyvsp[(4) - (5)].sval));
+
+	string s3 = "STRING "+s1+" "+s2;
+	//cout<<s3<<endl;
+
+	varlist.push_back(s3);
 ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 127 "src/Micro.y"
+#line 134 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 130 "src/Micro.y"
+#line 137 "src/Micro.y"
     {
 	string s1((yyvsp[(2) - (3)].sval));
 	istringstream iss(s1);
@@ -1607,14 +1614,14 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 142 "src/Micro.y"
+#line 149 "src/Micro.y"
     {(yyval.sval) = "FLOAT";;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 143 "src/Micro.y"
+#line 150 "src/Micro.y"
     {(yyval.sval) = "INT";
 ;}
     break;
@@ -1622,21 +1629,21 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 146 "src/Micro.y"
+#line 153 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 147 "src/Micro.y"
+#line 154 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 149 "src/Micro.y"
+#line 156 "src/Micro.y"
     {
 	if((yyvsp[(2) - (2)].sval) != 0){
 		string s1;
@@ -1656,7 +1663,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 164 "src/Micro.y"
+#line 171 "src/Micro.y"
     {
 	string s1;
 	stringstream ss;
@@ -1677,7 +1684,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 180 "src/Micro.y"
+#line 187 "src/Micro.y"
     {
 	(yyval.sval) = 0;
 ;}
@@ -1686,7 +1693,7 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 185 "src/Micro.y"
+#line 192 "src/Micro.y"
     {
 ;}
     break;
@@ -1694,7 +1701,7 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 190 "src/Micro.y"
+#line 197 "src/Micro.y"
     {
 ;}
     break;
@@ -1702,7 +1709,7 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 202 "src/Micro.y"
+#line 209 "src/Micro.y"
     {
 	(yyval.ival) = (yyvsp[(1) - (2)].ival);
 ;}
@@ -1711,7 +1718,7 @@ yyreduce:
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 206 "src/Micro.y"
+#line 213 "src/Micro.y"
     {
 	(yyval.ival) = 0;
 ;}
@@ -1720,14 +1727,14 @@ yyreduce:
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 211 "src/Micro.y"
+#line 218 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 213 "src/Micro.y"
+#line 220 "src/Micro.y"
     {
 	(yyval.ival) = (yyvsp[(1) - (1)].ival);
 ;}
@@ -1736,14 +1743,14 @@ yyreduce:
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 217 "src/Micro.y"
+#line 224 "src/Micro.y"
     {(yyval.ival) = 0;;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 221 "src/Micro.y"
+#line 228 "src/Micro.y"
     {
 	(yyval.ival) = (yyvsp[(1) - (1)].ival);
 ;}
@@ -1752,28 +1759,28 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 225 "src/Micro.y"
+#line 232 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 227 "src/Micro.y"
+#line 234 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 229 "src/Micro.y"
+#line 236 "src/Micro.y"
     {(yyval.ival) = 0;;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 233 "src/Micro.y"
+#line 240 "src/Micro.y"
     {
         //cout << "Started in order!" << endl;
 	//myast.inorder($<nval>1); 
@@ -1793,7 +1800,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 249 "src/Micro.y"
+#line 256 "src/Micro.y"
     {
 	node *temp1;
 	node *temp2;
@@ -1810,7 +1817,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 263 "src/Micro.y"
+#line 270 "src/Micro.y"
     {	
 	int presize;
 	presize = astlist.size();
@@ -1834,7 +1841,7 @@ yyreduce:
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 283 "src/Micro.y"
+#line 290 "src/Micro.y"
     {
 	int presize;
 	presize = astlist.size();
@@ -1858,7 +1865,7 @@ yyreduce:
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 305 "src/Micro.y"
+#line 312 "src/Micro.y"
     {
 	if((yyvsp[(1) - (2)].nval) == 0){
 		(yyval.nval) = (yyvsp[(2) - (2)].nval);
@@ -1874,7 +1881,7 @@ yyreduce:
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 319 "src/Micro.y"
+#line 326 "src/Micro.y"
     {
 	if ((yyvsp[(1) - (3)].nval) != 0 && (yyvsp[(2) - (3)].nval) != 0){
 		node *temp = myast.newmath((yyvsp[(2) - (3)].nval), (yyvsp[(3) - (3)].sval));
@@ -1895,14 +1902,14 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 337 "src/Micro.y"
+#line 344 "src/Micro.y"
     {(yyval.nval) = 0;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 340 "src/Micro.y"
+#line 347 "src/Micro.y"
     {
 	if((yyvsp[(1) - (2)].nval) == 0){
 		(yyval.nval) = (yyvsp[(2) - (2)].nval);
@@ -1917,7 +1924,7 @@ yyreduce:
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 353 "src/Micro.y"
+#line 360 "src/Micro.y"
     {
 	if ((yyvsp[(1) - (3)].nval) != 0 && (yyvsp[(2) - (3)].nval) != 0){
 		node *temp = myast.newmath((yyvsp[(2) - (3)].nval), (yyvsp[(3) - (3)].sval));
@@ -1937,14 +1944,14 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 370 "src/Micro.y"
+#line 377 "src/Micro.y"
     {(yyval.nval) = 0;;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 373 "src/Micro.y"
+#line 380 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 ;}
@@ -1953,7 +1960,7 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 385 "src/Micro.y"
+#line 392 "src/Micro.y"
     {
 	if (exprhead != 0){
 		(yyval.nval) = exprhead;
@@ -1968,7 +1975,7 @@ yyreduce:
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 395 "src/Micro.y"
+#line 402 "src/Micro.y"
     {
 	node *temp = myast.newval((yyvsp[(1) - (1)].sval));
 	(yyval.nval) = temp;
@@ -1978,7 +1985,7 @@ yyreduce:
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 400 "src/Micro.y"
+#line 407 "src/Micro.y"
     {
 	ostringstream buffer;
 	buffer << (yyvsp[(1) - (1)].ival);
@@ -1990,7 +1997,7 @@ yyreduce:
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 407 "src/Micro.y"
+#line 414 "src/Micro.y"
     {
 	ostringstream buffer;
 	buffer << (yyvsp[(1) - (1)].fval);
@@ -2002,35 +2009,35 @@ yyreduce:
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 415 "src/Micro.y"
+#line 422 "src/Micro.y"
     {(yyval.sval) = "+";;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 417 "src/Micro.y"
+#line 424 "src/Micro.y"
     {(yyval.sval) = "-";;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 420 "src/Micro.y"
+#line 427 "src/Micro.y"
     {(yyval.sval) = "*";;}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 422 "src/Micro.y"
+#line 429 "src/Micro.y"
     {(yyval.sval) = "/";;}
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 425 "src/Micro.y"
+#line 432 "src/Micro.y"
     {
 	node *ifptr = myast.newval("IF");
 	node *fiptr = myast.newval("FI");
@@ -2054,7 +2061,7 @@ yyreduce:
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 445 "src/Micro.y"
+#line 452 "src/Micro.y"
     {	
 	ast elseast;
 	elseast = ast();
@@ -2070,7 +2077,7 @@ yyreduce:
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 458 "src/Micro.y"
+#line 465 "src/Micro.y"
     {
 	//make new head of the conditional statement
 	node *conhead = myast.newmath((yyvsp[(1) - (3)].nval),(yyvsp[(2) - (3)].sval));
@@ -2083,49 +2090,49 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 468 "src/Micro.y"
+#line 475 "src/Micro.y"
     {(yyval.sval) = ">";;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 470 "src/Micro.y"
+#line 477 "src/Micro.y"
     {(yyval.sval) = "<";;}
     break;
 
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 472 "src/Micro.y"
+#line 479 "src/Micro.y"
     {(yyval.sval) = "=";;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 474 "src/Micro.y"
+#line 481 "src/Micro.y"
     {(yyval.sval) = "!=";;}
     break;
 
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 476 "src/Micro.y"
+#line 483 "src/Micro.y"
     {(yyval.sval) = "<=";;}
     break;
 
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 478 "src/Micro.y"
+#line 485 "src/Micro.y"
     {(yyval.sval) = ">=";;}
     break;
 
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 481 "src/Micro.y"
+#line 488 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0;
@@ -2135,7 +2142,7 @@ yyreduce:
   case 73:
 
 /* Line 1455 of yacc.c  */
-#line 486 "src/Micro.y"
+#line 493 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0
@@ -2145,7 +2152,7 @@ yyreduce:
   case 74:
 
 /* Line 1455 of yacc.c  */
-#line 492 "src/Micro.y"
+#line 499 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0;
@@ -2155,7 +2162,7 @@ yyreduce:
   case 75:
 
 /* Line 1455 of yacc.c  */
-#line 497 "src/Micro.y"
+#line 504 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0;
@@ -2165,7 +2172,7 @@ yyreduce:
   case 76:
 
 /* Line 1455 of yacc.c  */
-#line 503 "src/Micro.y"
+#line 510 "src/Micro.y"
     {
 	//insert conditional ast
 	ast tempast = ast((yyvsp[(5) - (11)].nval));
@@ -2198,7 +2205,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2202 "Micro.tab.c"
+#line 2209 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2410,7 +2417,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 533 "src/Micro.y"
+#line 540 "src/Micro.y"
 
 
 
@@ -2509,28 +2516,39 @@ astPostOrder.push_back(*(head->value));
 }
 
 void checkDatatype(string var) {
-list <string> varlistTemp = varlist;
-string type;
-string varTemp;
+	list <string> varlistTemp = varlist;
+	string type;
+	string varTemp;
+	int flag = 0;
+	while(!varlistTemp.empty()) {
+	istringstream iss(varlistTemp.front());
+	iss >> type;
+	iss >> varTemp;
+	//cout<<type<<endl;
+	if(varTemp == var) {
+		flag = 1;
+		if(type == "INT") {
+			datatype = "i";
+		}
+		else if(type == "FLOAT") {
+			datatype = "f";
+		}
+		else {
+			datatype = "s";
+		}
+	}
+	varlistTemp.pop_front();
+	}
 
-while(!varlistTemp.empty()) {
-istringstream iss(varlistTemp.front());
-iss >> type;
-iss >> varTemp;
-cout<<varTemp<<endl;
-if(varTemp == var) {
-	if(type == "INT") {
-		datatype = "i";
+	if(flag == 0) {
+		if(var.find('.') != string::npos) {
+			datatype = "f";
+		}
+		else {
+			datatype = "i";
+		}
+
 	}
-	else if(type == "FLOAT") {
-		datatype = "f";
-	}
-	else {
-		datatype = "s";
-	}
-}
-varlistTemp.pop_front();
-}
 }
 
 void generateIRList() {
@@ -2574,6 +2592,7 @@ void generateIRList() {
 			if(op1[0]!='$'){
 				//check for int/float. set global variable
 				checkDatatype(op1);
+				//cout<<op1<<endl;
 			}
 			if(datatype == "i") {
 				IRDisplay = "STOREI "+op1+" "+regStore;
@@ -2808,6 +2827,9 @@ void generateIRList() {
 			convert.str("");
 			convert << labelCount;
 			label = "label"+convert.str();
+			
+			IRDisplay = "LABEL "+label;
+			IRNodeList.push_back(IRDisplay);
 
 			labelStack.push_front(label);
 			labelCount++;
@@ -3955,6 +3977,8 @@ list<string> varlistTemp = varlist;
 list<string> varlistLoad;
 string var;
 string varTemp;
+string strName;
+string strVal;
 
 while(!varlistTemp.empty()) {
 	//NOTE: strings in this list are actual strings not pointers
@@ -3964,12 +3988,24 @@ while(!varlistTemp.empty()) {
 	istringstream iss(varlistTemp.front());
 	var = "";
 	iss>>var;
-	var = "";
-	iss>>var;
-	varTemp = "var "+var;
-	varlistLoad.push_front(varTemp);
-			varlistTemp.pop_front();
-    		}
+	if(var == "STRING") {
+		//var = "";
+		iss>>strName;
+		varTemp  = "str "+strName;
+		//iss>>strVal;
+		strVal = varlistTemp.front().erase(0,var.length()+strName.length()+2);
+		varTemp = varTemp+" "+strVal;
+		varlistLoad.push_front(varTemp);
+		varlistTemp.pop_front();
+	}
+	else {
+		var = "";
+		iss>>var;
+		varTemp = "var "+var;
+		varlistLoad.push_front(varTemp);
+		varlistTemp.pop_front();
+		}
+    	}
 
 		while(!varlistLoad.empty()) {
 			tinyCode.push_front(varlistLoad.front());
