@@ -30,6 +30,8 @@ static node * exprhead = 0;
 static list<stack<list<string>*> *> empire;
 static stack<list<string>*> currkingdom;
 static list<string>currfief;
+//ducttape list for storing exprlists in call expressions
+static list<node *>ducttape;
 static int val = 0;
 static int scope = 0;
 
@@ -412,13 +414,25 @@ base_stmt: assign_stmt
 
 assign_stmt: assign_expr SCOLONOP   
 {
+	int presize = astlist.size();
 	//cout << "Started post order!" << endl;
 	//myast.postorder($<nval>1);	
+	ast tempast;
 	astlist.push_back(myast);
 	//return pointer to statement's place in the list.
+	if (!ducttape.empty()){
+		for(list<node*>::iterator it = ducttape.begin(); it != ducttape.end(); it++){
+			tempast = ast(*it);
+			astlist.push_back(tempast);
+		}
+		tempast = ast();
+		tempast.newval("CALLEND");
+		astlist.push_back(tempast);
+		ducttape.clear();
+	}	
 	myast = ast();
 	//cout << (astlist.size()-1) << endl;
-	$<ival>$ = (astlist.size()-1);	
+	$<ival>$ = presize;	
 }
 ;
 
@@ -427,11 +441,14 @@ assign_expr: id ASSMTOP expr
 	node *temp1;
 	node *temp2;
 	temp1 = myast.newval($<sval>1);
-	temp2 = myast.newmath(temp1, ":=");
-	myast.addright(temp2,myast.root);	
+	temp2 = myast.newmath(temp1, ":=");	
 	//cout << "Begin Post Order" << endl;
 	//myast.postorder(temp2);
 	//cout << "End Post Order" << endl;
+	myast.addright(temp2, $<nval>3);
+	ast tempast($<nval>3);
+	//cout << "Begin post order!" << endl;
+	//tempast.postorder(myast.root);	
 	$<nval>$ = temp2;
 }
 //New ASSMTOP head with id as left, expr head as right
@@ -480,7 +497,14 @@ write_stmt: WRITE OPENPAROP id_list CLOSEPAROP SCOLONOP
 ;
 
 return_stmt: RETURN expr SCOLONOP
-{myast.root = 0;}   
+{
+	int presize;
+	presize = astlist.size();
+	ast tempast($<nval>2);
+	node *temp1 = tempast.newop($<nval>2, "RETURN");
+	astlist.push_back(tempast);
+	$<ival>$ = presize;
+}   
 ;
 
 expr: expr_prefix factor 
@@ -557,15 +581,59 @@ factor_prefix: factor_prefix postfix_expr mulop
 
 postfix_expr: primary 
 {$<nval>$ = $<nval>1;}
-| call_expr   
+| call_expr
+{$<nval>$ = $<nval>1;} 
 ;
 
 call_expr: id OPENPAROP expr_list CLOSEPAROP
+{
+	/*
+	int presize;
+	presize = astlist.size();
+
+	string s1($<sval>3);
+	istringstream iss(s1);
+	string s2;
+	while(iss >> s2){
+		if(s2 != ""){
+			node *temp1 = myast.newval(s2);
+			node *temp2 = myast.newop(temp1,"READ");
+			astlist.push_back(myast);
+			//cout << *(myast.root->value);
+			//cout << *(myast.root->right->value);
+			myast = ast();			 
+		}
+	}
+	$<ival>$ = presize;
+	*/
+	/*
+	for (list<node*>::iterator it = ducttape.begin(); it != ducttape.end(); it++){
+		cout << *((*it)->value) << endl;
+	}
+	*/
+	myast = ast();
+	//cout << "Call Expression Before" << endl;
+	//myast.postorder(myast.root);
+	node *temp1 = myast.newval($<sval>1);
+	$<nval>$ = myast.newop(temp1, "CALL");
+	//cout << "After" << endl;
+	//myast.postorder(myast.root);
+	
+}
 ;
-expr_list: expr expr_list_tail | empty   
+expr_list: expr expr_list_tail 
+{
+	ducttape.push_front($<nval>1);
+}
+| empty   
 ;
-expr_list_tail: COMMAOP expr expr_list_tail | empty   
+expr_list_tail: COMMAOP expr expr_list_tail
+{
+	ducttape.push_back($<nval>2);
+} 
+| empty   
 ;
+
 primary: OPENPAROP expr CLOSEPAROP 
 {
 	if (exprhead != 0){
