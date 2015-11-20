@@ -1,0 +1,23 @@
+#ifndef AST_H
+#define AST_H
+
+class ast {
+	public:
+		ast();
+		ast(node *);
+		~ast();
+		node *root;
+		
+		node *newval(string);
+		node *newop(node *, string);
+		node *newmath(node *, string);	
+		void destroy_tree();
+		void addright(node *, node *);
+		void inorder(node *);
+		void preorder(node *);
+		void postorder(node *);
+	private:
+		void destroy_tree(node *);
+};
+
+#endif
