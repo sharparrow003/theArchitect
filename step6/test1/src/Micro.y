@@ -331,6 +331,7 @@ func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN
 	//Push the function name on to a new list to be added to the function stack as a whole
 	//cout << "Step 1 Func Decl" << endl;
 	ostringstream oss;
+
 	oss << endl << "Symbol table " << $<sval>3;	
 	list<string>*fnname = new list<string>;
 	(*fnname).push_back(oss.str());
@@ -357,10 +358,22 @@ func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN
 		tempfief = *(currkingdom.top());	
 		currkingdom.pop();
 	}
+	
 	if (!astlist.empty()){
 		if ((astlist.size() + 1) >= $<ival>8){			
 			stringstream ss;
-			ss << "Function " << $<sval>3;
+			if ($<fief>5 != 0){	
+				list<string> paramstorage = *((list<string>*)$<fief>5);
+				ss << "Function " << $<sval>2 << " " << $<sval>3;
+				for (list<string>::iterator ls = paramstorage.begin(); ls != paramstorage.end(); ls++){
+					string s1(*ls);
+					string s2 = s1.substr(s1.find(" ",0),string::npos);
+					ss << " " << s2;	
+				}	
+			}
+			else{
+				ss << "Function " << $<sval>2 << " " << $<sval>3;
+			}
 			ast function = ast();
 			node *fnname = function.newval(ss.str());			
 			deque<ast>::iterator it = astlist.begin() + $<ival>8;
