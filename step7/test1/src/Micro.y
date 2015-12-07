@@ -272,7 +272,7 @@ var_type: FLOAT {$<sval>$ = "FLOAT";}
 | INT {$<sval>$ = "INT";}
 ;
 any_type: var_type {$<sval>$ = $<sval>1;}
-| VOID  {$<sval>$ = $<sval>1;}
+| VOID  {$<sval>$ = "VOID";}
 ;
 
 id_list: id id_tail {
@@ -2387,7 +2387,7 @@ int main(int argc, char *argv[]) {
 		}
 		leaders = cfg::findleaders(myIRlist);
 		cfglist = cfg::generateCFG(myIRlist, leaders);
-		//cfg::printcfg(cfglist);	
+		cfg::printcfg(cfglist);	
 		
 		int i = 0;
 		for(vector<string>::iterator it6 = myIRlist.begin(); it6 != myIRlist.end(); it6++){
