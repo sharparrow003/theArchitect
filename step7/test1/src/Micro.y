@@ -187,7 +187,7 @@ decl: string_decl decl
 | var_decl decl
 {
 	if (scope == 0){
-		cout << "Enter here? " << endl;
+		//cout << "Enter here? " << endl;
 		if(!currfief.empty()){
 			/*
 			while(currfief.size() > 9){
@@ -381,13 +381,14 @@ func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN
 					ss << " " << s2;	
 				}	
 			}
-			else{
-				ss << "Function " << $<sval>2 << " " << $<sval>3;
-			}
+			else{ss << "Function " << $<sval>2 << " " << $<sval>3;}
 			ast function = ast();
-			node *fnname = function.newval(ss.str());			
+			ast functionend = ast();
+			node *fnname = function.newval(ss.str());
+			node *fnend = functionend.newval("FEND");			
 			deque<ast>::iterator it = astlist.begin() + $<ival>8;
 			astlist.insert(it,function);
+			astlist.push_back(functionend);
 		}
 	}
 } 
@@ -1560,7 +1561,6 @@ void generateIRList() {
 			}
 			temp.pop_back();
 		}
-		
 		else {
 			temp.push_back(astPostOrder.front());
 		}
@@ -2346,19 +2346,6 @@ int main(int argc, char *argv[]) {
 			yyparse();
 		} while (!feof(yyin));
 
-		//Access astlist here like any linked list 
-		/*while (!astlist.empty()){
-			ast tempast = astlist.front();
-			//cout << "New tree marker" << endl;
-			myast.postorder(tempast.root);	
-			astlist.pop_front();
-		}*/
-		//Access example below
-		//cout << "Front of the list!" << endl;
-		//myast.inorder((astlist.front()).root);
-		//cout << "Back of the list!" << endl;
-		//myast.inorder((astlist.back()).root);
-	
 		//Backup IRlist from step6, dont delete this commented block
 		/*	
 		myIRlist.clear();
@@ -2400,7 +2387,7 @@ int main(int argc, char *argv[]) {
 		}
 		leaders = cfg::findleaders(myIRlist);
 		cfglist = cfg::generateCFG(myIRlist, leaders);
-		cfg::printcfg(cfglist);	
+		//cfg::printcfg(cfglist);	
 		
 		int i = 0;
 		for(vector<string>::iterator it6 = myIRlist.begin(); it6 != myIRlist.end(); it6++){
