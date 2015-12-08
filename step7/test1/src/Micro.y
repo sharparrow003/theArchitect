@@ -524,9 +524,14 @@ return_stmt: RETURN expr SCOLONOP
 {
 	int presize;
 	presize = astlist.size();
-	ast tempast($<nval>2);
-	node *temp1 = tempast.newop($<nval>2, "RETURN");
-	astlist.push_back(tempast);
+	ast startast = ast();
+	ast midast = ast($<nval>2);
+	ast endast = ast();
+	node *temp1 = startast.newval("RETURN");
+	node *temp2 = endast.newval("RETURNEND");
+	astlist.push_back(startast);
+	astlist.push_back(midast);
+	astlist.push_back(endast);
 	$<ival>$ = presize;
 	myast = ast();
 }   
