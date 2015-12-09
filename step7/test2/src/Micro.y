@@ -446,12 +446,20 @@ assign_stmt: assign_expr SCOLONOP
 	//cout << "Started post order!" << endl;
 	//myast.postorder($<nval>1);	
 	ast tempast;
+	ast commast;
+	node *temp = commast.newval("COMMA");
 	astlist.push_back(myast);
 	//return pointer to statement's place in the list.
 	if (!ducttape.empty()){
-		for(list<node*>::iterator it = ducttape.begin(); it != ducttape.end(); it++){
+		list<node*>::iterator it = ducttape.begin();
+		tempast = ast(*it);
+		astlist.push_back(tempast);
+		it++;
+		while(it != ducttape.end()){
+			astlist.push_back(commast);
 			tempast = ast(*it);
 			astlist.push_back(tempast);
+			it++;
 		}
 		tempast = ast();
 		tempast.newval("CALLEND");
