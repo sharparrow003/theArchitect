@@ -73,18 +73,14 @@
 #include <list>
 #include <stack>
 #include <vector>
-#include <set>
-#include <map>
 #include <deque>
 #include <cstdio>
 #include <cstdlib>
-#include <string>
 #include <iostream>
-#include <fstream>
+#include <string>
 #include <sstream>
 #include "src/ast.h"
-#include "src/cfg.h"
-#include "src/stat.h"
+#include <map>
 
 using namespace std;
 struct node{
@@ -101,13 +97,11 @@ extern "C" FILE *yyin;
 ast myast;
 deque<ast> astlist;
 list<string> varlist;
-vector<cfg> cfglist;
 //exprhead is being used as a temporary place holder for the root expression in nested parentheticals. i.e. (((x)+x)+x)
 static node * exprhead = 0;
 static list<stack<list<string>*> *> empire;
 static stack<list<string>*> currkingdom;
 static list<string>currfief;
-static vector<string>myIRlist;
 //ducttape list for storing exprlists in call expressions
 static list<node *>ducttape;
 static int val = 0;
@@ -120,6 +114,9 @@ int regVal = 0;		//Values of temp variables T
 int localVal = 0;	//Values of local variables L
 int parVal = 0;		//Values of parameter variables P
 map< string, map<string, string> > symbolTable;
+map< string, map<string, string> > datatypeTableIR;
+map< string, map<string, string> > datatypeTableTiny;
+string currentScope = "GLOBAL";
 
 int labelCount = 1;
 
@@ -138,7 +135,7 @@ void yyerror(const char *s) { cout << "Not Accepted" << endl; exit(0); }
 
 
 /* Line 189 of yacc.c  */
-#line 142 "Micro.tab.c"
+#line 139 "Micro.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -212,7 +209,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 68 "src/Micro.y"
+#line 65 "src/Micro.y"
 
 	int ival;
 	float fval;
@@ -224,7 +221,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 228 "Micro.tab.c"
+#line 225 "Micro.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -236,7 +233,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 240 "Micro.tab.c"
+#line 237 "Micro.tab.c"
 
 #ifdef short
 # undef short
@@ -551,14 +548,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   114,   114,   151,   153,   155,   187,   237,   244,   254,
-     256,   271,   272,   274,   275,   278,   294,   309,   315,   322,
-     326,   335,   335,   337,   337,   339,   397,   412,   416,   421,
-     423,   425,   429,   431,   433,   435,   439,   463,   481,   502,
-     523,   540,   555,   573,   577,   591,   608,   612,   614,   618,
-     654,   658,   660,   664,   667,   677,   682,   689,   703,   705,
-     708,   710,   713,   752,   780,   783,   793,   795,   797,   799,
-     801,   803,   807,   812,   819,   824,   831,   880
+       0,   111,   111,   148,   150,   152,   184,   234,   241,   251,
+     253,   268,   269,   271,   272,   275,   291,   306,   312,   319,
+     323,   332,   332,   334,   334,   336,   393,   408,   412,   417,
+     419,   421,   425,   427,   429,   431,   435,   459,   477,   498,
+     519,   531,   546,   564,   568,   582,   599,   603,   605,   609,
+     645,   649,   651,   655,   658,   668,   673,   680,   694,   696,
+     699,   701,   704,   743,   771,   774,   784,   786,   788,   790,
+     792,   794,   798,   803,   810,   815,   822,   871
 };
 #endif
 
@@ -1563,7 +1560,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 115 "src/Micro.y"
+#line 112 "src/Micro.y"
     {
 	varlist.push_back("Symbol table GLOBAL");
 	while(!empire.empty()){
@@ -1604,14 +1601,14 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 151 "src/Micro.y"
+#line 148 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].iden);;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 156 "src/Micro.y"
+#line 153 "src/Micro.y"
     {
 	if (scope == 0){
 		if(!currfief.empty()){
@@ -1648,10 +1645,10 @@ yyreduce:
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 188 "src/Micro.y"
+#line 185 "src/Micro.y"
     {
 	if (scope == 0){
-		//cout << "Enter here? " << endl;
+		cout << "Enter here? " << endl;
 		if(!currfief.empty()){
 			/*
 			while(currfief.size() > 9){
@@ -1703,7 +1700,7 @@ yyreduce:
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 238 "src/Micro.y"
+#line 235 "src/Micro.y"
     {
 	if (currfief.empty() && scope == 0){scope = 1;}
 	(yyval.fief) = 0;
@@ -1713,7 +1710,7 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 245 "src/Micro.y"
+#line 242 "src/Micro.y"
     {
 	string s1((yyvsp[(2) - (5)].sval));
 	string s2((yyvsp[(4) - (5)].sval));
@@ -1727,14 +1724,14 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 254 "src/Micro.y"
+#line 251 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 257 "src/Micro.y"
+#line 254 "src/Micro.y"
     {
 	string s1((yyvsp[(2) - (3)].sval));
 	stringstream ss(s1);
@@ -1753,35 +1750,35 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 271 "src/Micro.y"
+#line 268 "src/Micro.y"
     {(yyval.sval) = "FLOAT";;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 272 "src/Micro.y"
+#line 269 "src/Micro.y"
     {(yyval.sval) = "INT";;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 274 "src/Micro.y"
+#line 271 "src/Micro.y"
     {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 275 "src/Micro.y"
-    {(yyval.sval) = "VOID";;}
+#line 272 "src/Micro.y"
+    {(yyval.sval) = (yyvsp[(1) - (1)].sval);;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 278 "src/Micro.y"
+#line 275 "src/Micro.y"
     {
 	if((yyvsp[(2) - (2)].sval) != 0){
 		string s1;
@@ -1801,7 +1798,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 294 "src/Micro.y"
+#line 291 "src/Micro.y"
     {
 	string s1;
 	stringstream ss;
@@ -1822,7 +1819,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 310 "src/Micro.y"
+#line 307 "src/Micro.y"
     {
 	(yyval.sval) = 0;
 ;}
@@ -1831,7 +1828,7 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 316 "src/Micro.y"
+#line 313 "src/Micro.y"
     {
 	list<string> *fiefptr = new list<string>;
 	*fiefptr = currfief;
@@ -1843,14 +1840,14 @@ yyreduce:
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 323 "src/Micro.y"
+#line 320 "src/Micro.y"
     {(yyval.fief) = 0;;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 327 "src/Micro.y"
+#line 324 "src/Micro.y"
     {
 	string s1((yyvsp[(1) - (2)].sval));
 	string s2((yyvsp[(2) - (2)].sval));
@@ -1862,7 +1859,7 @@ yyreduce:
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 340 "src/Micro.y"
+#line 337 "src/Micro.y"
     {
 	//Push the function name on to a new list to be added to the function stack as a whole
 	//cout << "Step 1 Func Decl" << endl;
@@ -1907,14 +1904,13 @@ yyreduce:
 					ss << " " << s2;	
 				}	
 			}
-			else{ss << "Function " << (yyvsp[(2) - (9)].sval) << " " << (yyvsp[(3) - (9)].sval);}
+			else{
+				ss << "Function " << (yyvsp[(2) - (9)].sval) << " " << (yyvsp[(3) - (9)].sval);
+			}
 			ast function = ast();
-			ast functionend = ast();
-			node *fnname = function.newval(ss.str());
-			node *fnend = functionend.newval("FEND");			
+			node *fnname = function.newval(ss.str());			
 			deque<ast>::iterator it = astlist.begin() + (yyvsp[(8) - (9)].ival);
 			astlist.insert(it,function);
-			astlist.push_back(functionend);
 		}
 	}
 ;}
@@ -1923,7 +1919,7 @@ yyreduce:
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 398 "src/Micro.y"
+#line 394 "src/Micro.y"
     {
 	//cout << $<fief>1 << endl;
 	if((yyvsp[(1) - (2)].fief) != 0){	
@@ -1941,7 +1937,7 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 413 "src/Micro.y"
+#line 409 "src/Micro.y"
     {
 	(yyval.ival) = (yyvsp[(1) - (2)].ival);
 ;}
@@ -1950,7 +1946,7 @@ yyreduce:
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 417 "src/Micro.y"
+#line 413 "src/Micro.y"
     {
 	(yyval.ival) = 0;
 ;}
@@ -1959,56 +1955,56 @@ yyreduce:
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 422 "src/Micro.y"
+#line 418 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 424 "src/Micro.y"
+#line 420 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 426 "src/Micro.y"
+#line 422 "src/Micro.y"
     {(yyval.ival) = 0;;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 430 "src/Micro.y"
+#line 426 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 432 "src/Micro.y"
+#line 428 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 434 "src/Micro.y"
+#line 430 "src/Micro.y"
     {(yyval.ival) = (yyvsp[(1) - (1)].ival);;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 436 "src/Micro.y"
+#line 432 "src/Micro.y"
     {(yyval.ival) = 0;;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 440 "src/Micro.y"
+#line 436 "src/Micro.y"
     {
 	int presize = astlist.size();
 	//cout << "Started post order!" << endl;
@@ -2035,7 +2031,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 464 "src/Micro.y"
+#line 460 "src/Micro.y"
     {
 	node *temp1;
 	node *temp2;
@@ -2055,7 +2051,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 482 "src/Micro.y"
+#line 478 "src/Micro.y"
     {	
 	int presize;
 	presize = astlist.size();
@@ -2079,7 +2075,7 @@ yyreduce:
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 503 "src/Micro.y"
+#line 499 "src/Micro.y"
     {
 	int presize;
 	presize = astlist.size();
@@ -2103,18 +2099,13 @@ yyreduce:
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 524 "src/Micro.y"
+#line 520 "src/Micro.y"
     {
 	int presize;
 	presize = astlist.size();
-	ast startast = ast();
-	ast midast = ast((yyvsp[(2) - (3)].nval));
-	ast endast = ast();
-	node *temp1 = startast.newval("RETURN");
-	node *temp2 = endast.newval("RETURNEND");
-	astlist.push_back(startast);
-	astlist.push_back(midast);
-	astlist.push_back(endast);
+	ast tempast((yyvsp[(2) - (3)].nval));
+	node *temp1 = tempast.newop((yyvsp[(2) - (3)].nval), "RETURN");
+	astlist.push_back(tempast);
 	(yyval.ival) = presize;
 	myast = ast();
 ;}
@@ -2123,7 +2114,7 @@ yyreduce:
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 541 "src/Micro.y"
+#line 532 "src/Micro.y"
     {
 	if((yyvsp[(1) - (2)].nval) == 0){
 		(yyval.nval) = (yyvsp[(2) - (2)].nval);
@@ -2139,7 +2130,7 @@ yyreduce:
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 556 "src/Micro.y"
+#line 547 "src/Micro.y"
     {
 	if ((yyvsp[(1) - (3)].nval) != 0 && (yyvsp[(2) - (3)].nval) != 0){
 		node *temp = myast.newmath((yyvsp[(2) - (3)].nval), (yyvsp[(3) - (3)].sval));
@@ -2160,14 +2151,14 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 574 "src/Micro.y"
+#line 565 "src/Micro.y"
     {(yyval.nval) = 0;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 578 "src/Micro.y"
+#line 569 "src/Micro.y"
     {
 	if((yyvsp[(1) - (2)].nval) == 0){
 		(yyval.nval) = (yyvsp[(2) - (2)].nval);
@@ -2182,7 +2173,7 @@ yyreduce:
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 592 "src/Micro.y"
+#line 583 "src/Micro.y"
     {
 	if ((yyvsp[(1) - (3)].nval) != 0 && (yyvsp[(2) - (3)].nval) != 0){
 		node *temp = myast.newmath((yyvsp[(2) - (3)].nval), (yyvsp[(3) - (3)].sval));
@@ -2202,28 +2193,28 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 609 "src/Micro.y"
+#line 600 "src/Micro.y"
     {(yyval.nval) = 0;;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 613 "src/Micro.y"
+#line 604 "src/Micro.y"
     {(yyval.nval) = (yyvsp[(1) - (1)].nval);;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 615 "src/Micro.y"
+#line 606 "src/Micro.y"
     {(yyval.nval) = (yyvsp[(1) - (1)].nval);;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 619 "src/Micro.y"
+#line 610 "src/Micro.y"
     {
 	/*
 	int presize;
@@ -2263,7 +2254,7 @@ yyreduce:
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 655 "src/Micro.y"
+#line 646 "src/Micro.y"
     {
 	ducttape.push_front((yyvsp[(1) - (2)].nval));
 ;}
@@ -2272,7 +2263,7 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 661 "src/Micro.y"
+#line 652 "src/Micro.y"
     {
 	ducttape.push_back((yyvsp[(2) - (3)].nval));
 ;}
@@ -2281,7 +2272,7 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 668 "src/Micro.y"
+#line 659 "src/Micro.y"
     {
 	if (exprhead != 0){
 		(yyval.nval) = exprhead;
@@ -2296,7 +2287,7 @@ yyreduce:
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 678 "src/Micro.y"
+#line 669 "src/Micro.y"
     {
 	node *temp = myast.newval((yyvsp[(1) - (1)].sval));
 	(yyval.nval) = temp;
@@ -2306,7 +2297,7 @@ yyreduce:
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 683 "src/Micro.y"
+#line 674 "src/Micro.y"
     {
 	ostringstream buffer;
 	buffer << (yyvsp[(1) - (1)].ival);
@@ -2318,7 +2309,7 @@ yyreduce:
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 690 "src/Micro.y"
+#line 681 "src/Micro.y"
     {
 	ostringstream buffer;
 	buffer << (yyvsp[(1) - (1)].fval);
@@ -2336,35 +2327,35 @@ yyreduce:
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 704 "src/Micro.y"
+#line 695 "src/Micro.y"
     {(yyval.sval) = "+";;}
     break;
 
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 706 "src/Micro.y"
+#line 697 "src/Micro.y"
     {(yyval.sval) = "-";;}
     break;
 
   case 60:
 
 /* Line 1455 of yacc.c  */
-#line 709 "src/Micro.y"
+#line 700 "src/Micro.y"
     {(yyval.sval) = "*";;}
     break;
 
   case 61:
 
 /* Line 1455 of yacc.c  */
-#line 711 "src/Micro.y"
+#line 702 "src/Micro.y"
     {(yyval.sval) = "/";;}
     break;
 
   case 62:
 
 /* Line 1455 of yacc.c  */
-#line 714 "src/Micro.y"
+#line 705 "src/Micro.y"
     {
 	//AST and Control Structure code	
 	node *ifptr = myast.newval("IF");
@@ -2406,7 +2397,7 @@ yyreduce:
   case 63:
 
 /* Line 1455 of yacc.c  */
-#line 753 "src/Micro.y"
+#line 744 "src/Micro.y"
     {	
 	//AST and Control Structure code	
 	ast elseast;
@@ -2439,7 +2430,7 @@ yyreduce:
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 784 "src/Micro.y"
+#line 775 "src/Micro.y"
     {
 	//make new head of the conditional statement
 	node *conhead = myast.newmath((yyvsp[(1) - (3)].nval),(yyvsp[(2) - (3)].sval));
@@ -2452,49 +2443,49 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 794 "src/Micro.y"
+#line 785 "src/Micro.y"
     {(yyval.sval) = ">";;}
     break;
 
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 796 "src/Micro.y"
+#line 787 "src/Micro.y"
     {(yyval.sval) = "<";;}
     break;
 
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 798 "src/Micro.y"
+#line 789 "src/Micro.y"
     {(yyval.sval) = "=";;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 800 "src/Micro.y"
+#line 791 "src/Micro.y"
     {(yyval.sval) = "!=";;}
     break;
 
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 802 "src/Micro.y"
+#line 793 "src/Micro.y"
     {(yyval.sval) = "<=";;}
     break;
 
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 804 "src/Micro.y"
+#line 795 "src/Micro.y"
     {(yyval.sval) = ">=";;}
     break;
 
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 808 "src/Micro.y"
+#line 799 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0;
@@ -2504,7 +2495,7 @@ yyreduce:
   case 73:
 
 /* Line 1455 of yacc.c  */
-#line 813 "src/Micro.y"
+#line 804 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0
@@ -2514,7 +2505,7 @@ yyreduce:
   case 74:
 
 /* Line 1455 of yacc.c  */
-#line 820 "src/Micro.y"
+#line 811 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0;
@@ -2524,7 +2515,7 @@ yyreduce:
   case 75:
 
 /* Line 1455 of yacc.c  */
-#line 825 "src/Micro.y"
+#line 816 "src/Micro.y"
     {
 	(yyval.nval) = (yyvsp[(1) - (1)].nval);
 	myast.root = 0;
@@ -2534,7 +2525,7 @@ yyreduce:
   case 76:
 
 /* Line 1455 of yacc.c  */
-#line 832 "src/Micro.y"
+#line 823 "src/Micro.y"
     {
 	//AST and Control Structure code	
 	//insert conditional ast
@@ -2586,7 +2577,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2590 "Micro.tab.c"
+#line 2581 "Micro.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2798,7 +2789,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 882 "src/Micro.y"
+#line 873 "src/Micro.y"
 
 
 void printList(ast myast) {
@@ -2852,25 +2843,160 @@ void checkDatatype(string var) {
 	}
 }
 
-void populateSymbolTable(string functionName) {
-	/*
+map <string,string> populateSymbolTable(string functionName, map <string, string> tempMap, map <string, string> paramMap) {
+	list <string> varlistTemp = varlist;
+	string variableTemp1 = "";
+	string variableTemp2 = "";
+	string variableTemp3 = "";
+	localVal = 1;
+	
+
+	int functionFoundFlag = 0;
+
+	ostringstream convert;
+
 	while(!varlistTemp.empty()) {
+		variableTemp1 = "";
+		variableTemp2 = "";
+		variableTemp3 = "";
+
 		istringstream iss2(varlistTemp.front());
-		string variableTemp1;
-		string variableTemp2;
 		iss2 >> variableTemp1;
-			
+		iss2 >> variableTemp2;
+		iss2 >> variableTemp3;
+
+		/*cout<<"VariableTemp1 -->"<<variableTemp1<<endl;
+		cout<<"VariableTemp2 -->"<<variableTemp2<<endl;
+		cout<<"VariableTemp3 -->"<<variableTemp3<<endl;*/
+	
 		if(variableTemp1 == "Symbol") {
-			iss2 >> variableTemp2;
-			iss2 >> variableTemp2;
+			if(functionFoundFlag == 1) {
+				break;
+			}
+			else {
+				if(variableTemp3 == functionName) {
+					functionFoundFlag = 1;
+				}
+			}
+		}
+		else {
+			if(functionFoundFlag == 1) {
+  				if(paramMap.find(variableTemp2) == paramMap.end()){
+					convert.str("");
+					convert << localVal;
+					tempMap[variableTemp2] = "$L"+convert.str();
+					localVal++;
+				}
+				else{
+					//It is a parameter!
+				}
+			}
+		}	
 
-			if(variableTemp2 == functionName) {
-				i
-				
-			
+		varlistTemp.pop_front();		
+	}
 
-		varlistTemp.pop_front();
-	}*/
+	return tempMap;
+}
+
+map <string,string> populateDatatypeTableIR(string functionName) {
+	list <string> varlistTemp = varlist;
+	string variableTemp1 = "";
+	string variableTemp2 = "";
+	string variableTemp3 = "";
+	localVal = 1;
+	
+	map<string, string> tempMap;
+	tempMap.clear();
+	int functionFoundFlag = 0;
+
+	ostringstream convert;
+
+	while(!varlistTemp.empty()) {
+		variableTemp1 = "";
+		variableTemp2 = "";
+		variableTemp3 = "";
+
+		istringstream iss2(varlistTemp.front());
+		iss2 >> variableTemp1;
+		iss2 >> variableTemp2;
+		iss2 >> variableTemp3;
+
+		/*cout<<"VariableTemp1 -->"<<variableTemp1<<endl;
+		cout<<"VariableTemp2 -->"<<variableTemp2<<endl;
+		cout<<"VariableTemp3 -->"<<variableTemp3<<endl;*/
+	
+		if(variableTemp1 == "Symbol") {
+			if(functionFoundFlag == 1) {
+				break;
+			}
+			else {
+				if(variableTemp3 == functionName) {
+					functionFoundFlag = 1;
+				}
+			}
+		}
+		else {
+			if(functionFoundFlag == 1) {
+  				tempMap[variableTemp2] = variableTemp1;
+				//cout<<"VARIABLE-->"<<variableTemp2<<" TYPE-->"<<variableTemp1<<endl;
+			}
+		}	
+
+		varlistTemp.pop_front();		
+	}
+
+	return tempMap;
+}
+
+map <string,string> populateDatatypeTableTiny(string functionName, map<string, string> referenceTable) {
+	list <string> varlistTemp = varlist;
+	string variableTemp1 = "";
+	string variableTemp2 = "";
+	string variableTemp3 = "";
+	localVal = 1;
+	
+	map<string, string> tempMap;
+	tempMap.clear();
+	int functionFoundFlag = 0;
+
+	ostringstream convert;
+
+	while(!varlistTemp.empty()) {
+		variableTemp1 = "";
+		variableTemp2 = "";
+		variableTemp3 = "";
+
+		istringstream iss2(varlistTemp.front());
+		iss2 >> variableTemp1;
+		iss2 >> variableTemp2;
+		iss2 >> variableTemp3;
+
+		/*cout<<"VariableTemp1 -->"<<variableTemp1<<endl;
+		cout<<"VariableTemp2 -->"<<variableTemp2<<endl;
+		cout<<"VariableTemp3 -->"<<variableTemp3<<endl;*/
+	
+		if(variableTemp1 == "Symbol") {
+			if(functionFoundFlag == 1) {
+				break;
+			}
+			else {
+				if(variableTemp3 == functionName) {
+					functionFoundFlag = 1;
+				}
+			}
+		}
+		else {
+			if(functionFoundFlag == 1) {
+  				tempMap[referenceTable[variableTemp2]] = variableTemp1;
+				//cout<<"VARIABLE-->"<<referenceTable[variableTemp2]<<" TYPE-->"<<variableTemp1<<endl;
+			}
+		}	
+
+		varlistTemp.pop_front();		
+	}
+
+	return tempMap;
 }
 
 void generateIRList() {
@@ -2892,14 +3018,27 @@ void generateIRList() {
 	string functionName;
 	string variableName;
 
-	map <string, string> tempMap;
-	list <string> varlistTemp;
+	map <string, string> tempMap1;  //For Symbol Table
+	map <string, string> tempMap2;  //For Datatype Table IR
+	map <string, string> tempMap3;  //For Datatype Table Tiny
 
 	while (!astlist.empty()) {
 		astNode = astlist.front();
 		generateIRPostOrderList(astNode.root);
 		astlist.pop_front();
 	}
+
+	tempMap1.clear();
+	tempMap2.clear();
+	tempMap3.clear();
+	tempMap1 = populateSymbolTable("GLOBAL", tempMap1, tempMap1);
+	tempMap2 = populateDatatypeTableIR("GLOBAL");
+	tempMap3 = populateDatatypeTableTiny("GLOBAL", tempMap1);
+	symbolTable["GLOBAL"] = tempMap1;
+	datatypeTableIR["GLOBAL"] = tempMap2;
+	datatypeTableTiny["GLOBAL"] = tempMap3;
+
+	//tempMap
 
 	while(!astPostOrder.empty()) {
 		/*
@@ -3084,32 +3223,36 @@ void generateIRList() {
 			regVal = 1;
 			localVal = 1;
 			parVal = 1;
+			registerValue = 1;
 			returnType = "";
 			functionName = "";
-			varlistTemp = varlist;
 
 			iss>>returnType;
 			iss>>functionName;
 			
+			IRNodeList.push_back("");
 			IRDisplay = "LABEL "+functionName;
 			IRNodeList.push_back(IRDisplay);
 			IRDisplay = "LINK";
 			IRNodeList.push_back(IRDisplay);
 
-			tempMap.clear();
-			cout<<"Function name-->"<<functionName<<endl;
+			tempMap1.clear();
+			tempMap2.clear();
+			tempMap3.clear();
+			//cout<<endl<<"Function name-->"<<functionName<<endl;
 			while(iss >> variableName) {
 				convert.str("");
 				convert << parVal;
-				tempMap[variableName] = "$P"+convert.str();
+				tempMap1[variableName] = "$P"+convert.str();
 				parVal++;
-			}
-			
-			/*
-			for (map<string,string>::iterator it=tempMap.begin(); it!=tempMap.end(); ++it) {
-				cout<<it->first<<"-->"<<it->second<<endl;
-			}
-			*/
+			}					
+			tempMap1 = populateSymbolTable(functionName, tempMap1, tempMap1);
+			tempMap2 = populateDatatypeTableIR(functionName);
+			tempMap3 = populateDatatypeTableTiny(functionName, tempMap1);
+
+			symbolTable[functionName] = tempMap1;
+			datatypeTableIR[functionName] = tempMap2;
+			datatypeTableTiny[functionName] = tempMap3;
 		
 		}
 
@@ -3486,6 +3629,7 @@ void generateIRList() {
 			}
 			temp.pop_back();
 		}
+
 		else {
 			temp.push_back(astPostOrder.front());
 		}
@@ -3494,17 +3638,13 @@ void generateIRList() {
 
 	list <string> IRNodeListDisplay = IRNodeList;
 	IRList = IRNodeList;	
-	list<string>::iterator it = IRNodeListDisplay.begin(); 
-	for (it; it != IRNodeListDisplay.end();it++){
-		//cout << *it << endl;
-		myIRlist.push_back(*it);
-	}
 	
+	/*
        	cout<<";IR code"<<endl;
 	while (!IRNodeListDisplay.empty()) {
 		cout<<";"<<IRNodeListDisplay.front()<<endl;
 		IRNodeListDisplay.pop_front();
-	}
+	}*/
 	
 }	
 
@@ -4198,7 +4338,8 @@ list<string> generateTinyCode() {
 		//JUMP label
 		else if (op == "JUMP") {
 			iss >> result;
-
+			
+			
 			tinyStmt = "jmp "+result;
 			tinyCode.push_back(tinyStmt);			
 					
@@ -4271,402 +4412,23 @@ int main(int argc, char *argv[]) {
 			yyparse();
 		} while (!feof(yyin));
 
-		//Backup IRlist from step6, dont delete this commented block
-		/*	
-		myIRlist.clear();
-		ifstream infile("testfile");
-		if(!infile){
-			cerr << "File not found." << endl;
-			return -1;
+		//Access astlist here like any linked list 
+		while (!astlist.empty()){
+			ast tempast = astlist.front();
+			//cout << "New tree marker" << endl;
+			myast.postorder(tempast.root);	
+			astlist.pop_front();
 		}
-		string line;
-		while (getline(infile, line)){
-			myIRlist.push_back(line);
-		}
-		vector<string>::iterator it1 = myIRlist.begin();
-		for (it1; it1 != myIRlist.end(); it1++){
-			cout << (*it1) << endl;
-		}
-		*/
-
-		generateIRList();	
+		//Access example below
+		//cout << "Front of the list!" << endl;
+		//myast.inorder((astlist.front()).root);
+		//cout << "Back of the list!" << endl;
+		//myast.inorder((astlist.back()).root);
 		
-		//Michael's code
-		map<string,vector<int> > leaders;
-		//Vector to store GEN and KILL for each IR node
-		vector<set<string> > GEN(myIRlist.size());
-		vector<set<string> > KILL(myIRlist.size());
-		set<string> globalGEN;
-		set<string> tempGEN;
-		set<string> tempKILL;
-		
-		list<string>::iterator it5 = varlist.begin();
-		it5++;
-		while((*it5).find("Symbol table") == string::npos){
-			string id;
-			stringstream extract(*it5);
-			extract >> id;
-			extract >> id;
-			globalGEN.insert(id);
-			it5++;
-		}
-		leaders = cfg::findleaders(myIRlist);
-		cfglist = cfg::generateCFG(myIRlist, leaders);
-		cfg::printcfg(cfglist);	
-		
-		int i = 0;
-		for(vector<string>::iterator it6 = myIRlist.begin(); it6 != myIRlist.end(); it6++){
-			string opcode;
-			stringstream irnode(*it6);
-			irnode >> opcode;
-			if (opcode == "STOREI"){
-				int test;
-				if((irnode >> test).fail()){
-					irnode.str("");
-					irnode.clear();
-					irnode.str(*it6);
-				//	cout << "Variable usage" << endl;
-					irnode >> opcode;
-					irnode >> opcode;
-					tempGEN.insert(opcode);
-					irnode >> opcode;
-					tempKILL.insert(opcode);
-					GEN[i] = tempGEN;
-					KILL[i] = tempKILL;
-					tempGEN.clear();
-					tempKILL.clear();
-				}
-				else{
-				//	cout << "constant usage" << endl;
-					irnode >> opcode;
-					irnode >> opcode;
-					irnode >> opcode;
-					tempKILL.insert(opcode);
-					GEN[i] = tempGEN;
-					KILL[i] = tempKILL;
-					tempGEN.clear();
-					tempKILL.clear();
-				}
-			}
-			else if (opcode == "STOREF"){
-				float test;
-				if((irnode >> test).fail()){
-					irnode.str("");
-					irnode.clear();
-					irnode.str(*it6);
-				//	cout << "Variable usage" << endl;
-					irnode >> opcode;
-					irnode >> opcode;
-					tempGEN.insert(opcode);
-					irnode >> opcode;
-					tempKILL.insert(opcode);
-					GEN[i] = tempGEN;
-					KILL[i] = tempKILL;
-					tempGEN.clear();
-					tempKILL.clear();
-				}
-				else{
-				//	cout << "constant usage" << endl;
-					irnode >> opcode;
-					irnode >> opcode;
-					irnode >> opcode;
-					tempKILL.insert(opcode);
-					GEN[i] = tempGEN;
-					KILL[i] = tempKILL;
-					tempGEN.clear();
-					tempKILL.clear();
-				}
-			}
-			else if (opcode == "ADDI"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				int test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "ADDF"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				float test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();			
-			}
-			else if (opcode == "SUBI"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				int test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();	
-			}
-			else if (opcode == "SUBF"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				float test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-
-			}
-			else if (opcode == "MULTI"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				int test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "MULTF"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				float test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "DIVI"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				int test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "DIVF"){
-				string arg1;
-				string arg2;
-				string arg3;
-				irnode >> arg1;
-				irnode >> arg2;
-				irnode >> arg3;
-				string testvar;
-				stringstream teststream(arg1);
-				float test;
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg1);	
-				}
-				teststream.str(arg2);
-				if((teststream >> test).fail()){
-					tempGEN.insert(arg2); 
-				}
-				tempKILL.insert(arg3);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "READI"){
-				string arg1;
-				irnode >> arg1;
-				tempKILL.insert(arg1);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "READF"){
-				string arg1;
-				irnode >> arg1;
-				tempKILL.insert(arg1);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "WRITES"){
-				string arg1;
-				irnode >> arg1;
-				tempGEN.insert(arg1);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "WRITEI"){
-				string arg1;
-				irnode >> arg1;
-				tempGEN.insert(arg1);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "WRITEF"){
-				string arg1;
-				irnode >> arg1;
-				tempGEN.insert(arg1);			
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "PUSH"){
-				string arg1;
-				irnode >> arg1;
-				if (arg1 == ""){;}
-				else{tempGEN.insert(arg1);}
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else if (opcode == "POP"){
-				string arg1;
-				irnode >> arg1;
-				if (arg1 == ""){;}
-				else{tempKILL.insert(arg1);}
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();	
-			}
-			else if (opcode == "JSR"){
-				GEN[i] = globalGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			else{
-				GEN[i] = tempGEN;
-				KILL[i] = tempKILL;
-				tempGEN.clear();
-				tempKILL.clear();
-			}
-			i++;
-		}
-		
-		i=0;
-		cout << "BEGIN DISPLAYING GEN FOR EACH IR NODE" << endl;
-		vector<set<string> >::iterator it7 = GEN.begin();
-		for (it7; it7 != GEN.end(); it7++){
-			cout << myIRlist[i] << endl;
-			set<string>::iterator it8 = (*it7).begin();
-			for (it8; it8 != (*it7).end(); it8++){
-				cout << *it8 << endl;
-			}
-			i++; 
-		}
-		i=0;
-		cout << "BEGIN DISPLAYING KILL FOR EACH IR NODE" << endl;
-		vector<set<string> >::iterator it9 = KILL.begin();
-		for (it9; it9 != KILL.end(); it9++){
-			cout << myIRlist[i] << endl;
-			set<string>::iterator it10 = (*it9).begin();
-			for (it10; it10 != (*it9).end(); it10++){
-				cout << *it10 << endl;
-			}
-			i++; 
-		}	
-		//Michael's code end
-		
+		//LALIT UNCOMMENT THIS PART STARTING HERE<<<<<<<<<<<<<<<*	
+		generateIRList();
 		list<string> tinyCode = generateTinyCode();
+
 		list<string> varlistTemp = varlist;
 		list<string> varlistLoad;
 		string var;
@@ -4674,6 +4436,36 @@ int main(int argc, char *argv[]) {
 		string strName;
 		string strVal;
 
+		//View Symbol Table
+		/*
+		for (map < string, map <string, string> >::iterator it1=symbolTable.begin(); it1!=symbolTable.end(); ++it1) {
+				cout<<"SCOPE-->"<<it1->first<<endl;
+				for (map < string, string>::iterator it2=symbolTable[it1->first].begin(); it2!=symbolTable[it1->first].end(); ++it2) {
+					cout<<it2->first<<"-->"<<it2->second<<endl;
+				}
+				cout<<endl;
+		}
+		*/
+
+		//View Datatype Table IR
+		/*for (map < string, map <string, string> >::iterator it1=datatypeTableIR.begin(); it1!=datatypeTableIR.end(); ++it1) {
+				cout<<"SCOPE-->"<<it1->first<<endl;
+				for (map < string, string>::iterator it2=datatypeTableIR[it1->first].begin(); it2!=datatypeTableIR[it1->first].end(); ++it2) {
+					cout<<it2->first<<"-->"<<it2->second<<endl;
+				}
+				cout<<endl;
+		}*/
+
+		//View Datatype Table Tiny
+		/*for (map < string, map <string, string> >::iterator it1=datatypeTableTiny.begin(); it1!=datatypeTableTiny.end(); ++it1) {
+				cout<<"SCOPE-->"<<it1->first<<endl;
+				for (map < string, string>::iterator it2=datatypeTableTiny[it1->first].begin(); it2!=datatypeTableTiny[it1->first].end(); ++it2) {
+					cout<<it2->first<<"-->"<<it2->second<<endl;
+				}
+				cout<<endl;
+		}*/
+
+		/*
 		while(!varlistTemp.empty()) {
 			//NOTE: strings in this list are actual strings not pointers
 			//This is example code for iterating through the list
@@ -4709,7 +4501,7 @@ int main(int argc, char *argv[]) {
 		while (!tinyCode.empty()) {
 			cout<<tinyCode.front()<<endl;
 			tinyCode.pop_front();
-		}
+		}*/
 	}//END OF ELSE STATEMENT
 	
 }

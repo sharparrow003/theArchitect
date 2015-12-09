@@ -1,0 +1,69 @@
+// constructing maps
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+#include <typeinfo>
+using namespace std;
+
+string checkType(string input) {
+	int i=0;
+	string retVal = "INT";
+	for (i = 0; i<input.length(); i++) {
+		if(input[i] == '.') {
+			retVal = "FLOAT";
+			break;
+		}
+	}
+	return retVal;
+}
+	
+
+int main ()
+{
+  map<string, string> first;
+  map<string, string> second;
+  vector < map<string, string> > reference;
+  map< int, map<string, string> > table;
+
+  string findString = "Helloo";
+
+  first["Hello"] = "World";
+  first["Manchester"] = "United";
+
+  second["Good"] = "Bye";
+  second["Real"] = "Madrid";
+
+  map<string, string> temp = first;
+  
+ 
+  //cout<<temp["Hello"]<<endl;
+  //cout<<temp["Manchester"]<<endl;
+
+  reference.push_back(first);
+  reference.push_back(second);
+
+  //cout<<reference[0]["Hello"]<<endl;
+
+  table[0] = first;
+  table[1] = second;
+
+  cout<<table[0]["Hello"]<<endl;
+
+  if(first.find(findString) == first.end()){
+	cout<<"Not Found!"<<endl;
+  }
+  else {
+	cout<<"Found!"<<endl;
+  }
+
+  string input1 = "10";
+  string input2 = "abc";
+  string input3 = "3.14";
+
+  cout<<checkType(input1)<<endl;
+  cout<<checkType(input2)<<endl;
+  cout<<checkType(input3)<<endl;
+
+  return 0;
+}
