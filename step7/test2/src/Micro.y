@@ -8,9 +8,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <typeinfo>
 #include "src/ast.h"
 #include "src/cfg.h"
 #include "src/stat.h"
@@ -31,6 +33,7 @@ ast myast;
 deque<ast> astlist;
 list<string> varlist;
 vector<cfg> cfglist;
+map<string,list<string> > fnhash;
 //exprhead is being used as a temporary place holder for the root expression in nested parentheticals. i.e. (((x)+x)+x)
 static node * exprhead = 0;
 static list<stack<list<string>*> *> empire;
@@ -372,7 +375,7 @@ func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN
 		tempfief = *(currkingdom.top());	
 		currkingdom.pop();
 	}
-	
+	list<string> parameters;
 	if (!astlist.empty()){
 		if ((astlist.size() + 1) >= $<ival>8){			
 			stringstream ss;
@@ -380,7 +383,8 @@ func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN
 				list<string> paramstorage = *((list<string>*)$<fief>5);
 				ss << "Function " << $<sval>2 << " " << $<sval>3;
 				for (list<string>::iterator ls = paramstorage.begin(); ls != paramstorage.end(); ls++){
-					string s1(*ls);
+				parameters.push_back(*ls);		
+				string s1(*ls);
 					string s2 = s1.substr(s1.find(" ",0),string::npos);
 					ss << " " << s2;	
 				}	
@@ -395,6 +399,7 @@ func_decl: FUNCTION any_type id OPENPAROP param_decl_list CLOSEPAROP BEGIN_TOKEN
 			astlist.push_back(functionend);
 		}
 	}
+	fnhash.insert(pair<string,list<string> >($<sval>3,parameters));
 } 
 ;
 
@@ -2721,7 +2726,7 @@ int main(int argc, char *argv[]) {
 		}*/
 
 		//Backup IRlist from step6, dont delete this commented block
-		/*	
+		/*			
 		myIRlist.clear();
 		ifstream infile("testfile");
 		if(!infile){
@@ -2734,7 +2739,9 @@ int main(int argc, char *argv[]) {
 		}
 		vector<string>::iterator it1 = myIRlist.begin();
 		for (it1; it1 != myIRlist.end(); it1++){
-			cout << (*it1) << endl;
+			if(*it1 != ""){
+				cout << (*it1) << endl;
+			}
 		}
 		*/
 
@@ -2751,7 +2758,7 @@ int main(int argc, char *argv[]) {
 		
 		list<string>::iterator it5 = varlist.begin();
 		it5++;
-		while((*it5).find("Symbol table") == string::npos){
+		while((*it5).find("Symbol table") == string::npos){			
 			string id;
 			stringstream extract(*it5);
 			extract >> id;
@@ -2759,15 +2766,17 @@ int main(int argc, char *argv[]) {
 			globalGEN.insert(id);
 			it5++;
 		}
+			
 		leaders = cfg::findleaders(myIRlist);
 		cfglist = cfg::generateCFG(myIRlist, leaders);
 		//cfg::printcfg(cfglist);	
-		
+
 		int i = 0;
 		for(vector<string>::iterator it6 = myIRlist.begin(); it6 != myIRlist.end(); it6++){
 			string opcode;
 			stringstream irnode(*it6);
 			irnode >> opcode;
+			//cout << irnode.str() << endl;
 			if (opcode == "STOREI"){
 				int test;
 				if((irnode >> test).fail()){
@@ -3077,7 +3086,26 @@ int main(int argc, char *argv[]) {
 				tempKILL.clear();	
 			}
 			else if (opcode == "JSR"){
-				GEN[i] = globalGEN;
+				set<string> GENwparam;
+				GENwparam = globalGEN;
+				string arg1;
+				irnode >> arg1;
+				if(fnhash.find(arg1) == fnhash.end() ){;}
+				else{
+					list<string> parameters = fnhash[arg1];
+				 	list<string>::iterator pit = parameters.begin();	
+					//copy((*important).begin(), (*(fnhash[arg1])).end(), parameters.begin());
+					if (!parameters.empty()){
+						for(pit;pit!=parameters.end();pit++){
+							string id;
+							stringstream extractor(*pit);
+							extractor >> id;
+							extractor >> id;
+							GENwparam.insert(id);
+						}
+					}
+				}
+				GEN[i] = GENwparam;
 				KILL[i] = tempKILL;
 				tempGEN.clear();
 				tempKILL.clear();
@@ -3091,7 +3119,7 @@ int main(int argc, char *argv[]) {
 			i++;
 		}
 		
-		/*i=0;
+		i=0;
 		cout << "BEGIN DISPLAYING GEN FOR EACH IR NODE" << endl;
 		vector<set<string> >::iterator it7 = GEN.begin();
 		for (it7; it7 != GEN.end(); it7++){
@@ -3112,7 +3140,7 @@ int main(int argc, char *argv[]) {
 				cout << *it10 << endl;
 			}
 			i++; 
-		}*/
+		}
 	
 		//Michael's code end
 		
